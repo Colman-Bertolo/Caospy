@@ -1,2 +1,2 @@
-# Proyecto-software-para-c-mputo-cient-fico
-Desarrollo de librería orientada a cómputo científico. 
+# NonlinearPynamics
+Desarrollo de librería destinada al análisis de sistemas dinámicos no lineales. 
