@@ -2,27 +2,61 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import odeint
 import sympy as sp
+from scipy.optimize import fsolve
 
 
-''' Clase 'System': Representa un sistema cualquiera de los sistemas cargados en la librería. Se inicializa con vector condiciones iniciales 'x0', vector parámetros 'c' y nombre de sistema dentro de una lista de posibles sistemas (lorenz, duffing, etc.)
+''' Clase 'NonlinearSystem': Representa un sistema cualquiera de los sistemas cargados en la librería. Se inicializa con vector condiciones iniciales 'x0', vector parámetros 'c' y nombre de sistema dentro de una lista de posibles sistemas (Lorenz, duffing, etc.)
 '''
 
-class NonlinearSystem:
-    def __init__(self, x0, c, name):
-        self.x0 = x0 # Devuelve vector condiciones iniciales
-        self.params = c # Devuelve vector de parámetros
+
+class SymbolicSystem:
+    def __init__(self, x, f, params, name):
+        self.x = x # Devuelve lista de variables
+        self.params = params # Devuelve lista de parámetros
         self.name = name.title() # Devuelve cadena de caracteres con nombre
-
-    def fixed_points(self):
-
-
-    def eigenvalues(self,):
-
-
-    def eigenvectors(self, ):
+        self.f = f # Devuelve lista con las funciones del sistema
+        self.n_var = len(x)
+        self.n_eq = len(f)
+        self.syst_shape = f'El sistema es de {len(f)} ecuaciones por {len(x)} incógnitas'
 
 
-    def
+    def fixed_points(self, *p):
+        v_str = ', '.join(self.x)
+        v = sp.symbols(v_str)
+        locals().update(dict(zip(self.x, v)))
+        locals().update(dict(zip(self.params, p)))
+
+        func = []
+        for derivative in self.f:
+           func.append(sp.Eq(eval(derivative), 0))
+
+        roots = sp.solve(func, v)
+        if isinstance(roots, list):
+            roots = np.array(roots)
+
+        elif isinstance(roots, dict):
+            roots = np.array([i for i in roots.values()])
+
+        return roots
+
+
+    def eigenvalues(self):
+        v_str = ', '.join(self.x)
+        v = sp.symbols(v_str)
+        locals().update(dict(zip(self.x, v)))
+        locals().update(dict(zip(self.params, )))
+
+        equations = [eval(func) for func in self.f]
+        Jacobian = np.array([[sp.diff(eq, var) for eq in equations] for var in v])
+        points = [list(zip(v, i)) for i in self.fixed_points]
+        A_Matrices = []
+        for J in points:
+            A_Matrices.append(np.array(list(map(np.vectorize(lambda i: i.subs(J)), Jacobian))))
+
+        return # Aún no sé como retornar
+
+    def eigenvectors(self):
+
 
 '''
 
@@ -61,12 +95,12 @@ class Lorenz:
 
     def attractor(self, step=0.01, n=5000):
 
-        def lorenz(t, x, *c):
+        def lorenz(t, x, sigma, rho, beta):
             x, y, z = x
             sigma, rho, beta = c
-            dxdt = sigma * (y - x)
-            dydt = x * (rho - z) - y
-            dzdt = x * y - beta * z
+            dx = sigma * (y - x)
+            dy = x * (rho - z) - y
+            dz = x * y - beta * z
             return [dx, dy, dz]
         t = np.linspace(0, step * n, n)
 
@@ -103,14 +137,12 @@ class Duffing:
         self.params = [alpha, beta, delta, gamma, omega] # Devuelve lista de parámetros params
         self.params_tuple = (alpha, beta, delta, gamma, omega) # Devuelve tupla de parámetros params_tuple
 
-    def
+
 
 
 
 # Clase Attractor: Permite representar un atractor de un sistema dinámico a partir de un vector de tiempo t y una matriz de trayectorias x.
 
-#Cambio
-a = 2
 
 class Attractor:
     def __init__(self, t, x):
