@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from scipy.integrate import odeint
 import sympy as sp
 from scipy.optimize import fsolve
+import pandas as pd
 
 
 ''' Clase 'NonlinearSystem': Representa un sistema cualquiera de los sistemas cargados en la librería. Se inicializa con vector condiciones iniciales 'x0', vector parámetros 'c' y nombre de sistema dentro de una lista de posibles sistemas (Lorenz, duffing, etc.)
@@ -55,66 +56,56 @@ class SymbolicSystem:
 
         return # Aún no sé como retornar
 
-    def eigenvectors(self):
+    #def eigenvectors(self):
 
 
-'''
-
-def duffing(t, x, *c):
+'''def duffing(t, x, *c):
     x, y  = x
     alpha, beta, delta, gamma, omega = c
     dx = y
     dy = -delta * y - alpha * x - beta * x**3 + gamma * np.cos(omega * t)
-    return [dx, dy]
-
-def laser_plasma(t, x, *c):
-    x1, x2, x3 = x
-    n0, a0 = c
-    h = 1 if x1 > 0 else 0
-    bz = -np.sign(x3) * np.sqrt(2 * n0) * np.sqrt((1 + x3**2)**(1.5) - (1 + x3**2)) if x1 > 0 else '''
+    return [dx, dy]'''
 
 
 
 '''
-Clase Lorenz: Permite representar un sistema de Lorenz de 3x3. Se inicializa con condiciones iniciales x0, y0, z0 y parámetros sigma, rho y beta.
+Clase Lorenz: Permite representar un sistema de Lorenz de 3x3. Se inicializa con condiciones iniciales x0, y0, z0 y parámetros sigma, rho y beta.'''
 
-'''
+class DynamicSystem:
+    def __init__(self, f, c, name):
+        self.f = f
+        self.c = c
+        self.c_tuple = tuple(c)
+        self.name = name
 
-class Lorenz:
-    def __init__(self, x0, y0, z0, sigma, rho, beta):
-        self.x0 = x0 # Devuelve condición inicial x0
-        self.y0 = y0 # Devuelve condición inicial y0
-        self.z0 = z0 # Devuelve condición inicial z0
-        self.X0 = [x0, y0, z0] # Devuelve lista de condiciones iniciales X0
+    def TimeEvolution(self, x0, step=0.01, n=5000):
+        t = np.linspace(0, step * n, n)
+        integration = odeint(self.f, self.x0, t, args=self.c_tuple)
+        trajectory = Trajectory(t, integration)
+        return trajectory
+
+class Lorenz(DynamicSystem):
+    def __init__(self, sigma, rho, beta):
         self.sigma = sigma # Devuelve parámetro sigma
         self.rho = rho # Devuelve parámetro rho
         self.beta = beta # Devuelve parámetro beta
-        self.params = [sigma, rho, beta] # Devuelve lista de parámetros params
-        self.params_tuple = (sigma, rho, beta) # Devuelve tupla de parámetros
+        super().__init__(self.func_lorenz, [sigma, rho, beta], name='Lorenz')
 
-
-    def attractor(self, step=0.01, n=5000):
-
-        def lorenz(t, x, sigma, rho, beta):
-            x, y, z = x
-            sigma, rho, beta = c
-            dx = sigma * (y - x)
-            dy = x * (rho - z) - y
-            dz = x * y - beta * z
-            return [dx, dy, dz]
-        t = np.linspace(0, step * n, n)
-
-        f = odeint(lorenz, self.X0, t, args=self.params_tuple, tfirst=True)
-        f = Attractor(t, f)
-        return f
-
+    @classmethod
+    def func_lorenz(cls, x, t, *p):
+        x, y, z = x
+        sigma, rho, beta = p
+        dx = sigma * (y - x)
+        dy = x * (rho - z) - y
+        dz = x * y - beta * z
+        return [dx, dy, dz]
 
     def poincare(self, t_desc=20000, t_calc=50, step=0.01):
         t_descarte = np.linspace(0, t_desc, int(t_desc / step))
-        x = odeint(lorenz, self.X0, t_desc, self.params_tuple, tfirst=True)
+        x = odeint(lorenz, self.X0, t_desc, self.params_tuple)
         t_calculo = np.linspace(0, t_calc, int(t_calc / step))
         x0 = [x[0, -1], x[1, -1], x[2, -1]]
-        x = odeint(lorenz, x0, t_calculo, self.params_tuple, tfirst=True)
+        x = odeint(lorenz, x0, t_calculo, self.params_tuple)
         p = Poincare(t_calculo, x)
         return p
 
@@ -124,19 +115,22 @@ Clase Duffing: Permite representar sistema de Duffing. Se inicializa a partir de
 '''
 
 
-class Duffing:
-    def __init__(self, x0, y0, alpha, beta, delta, gamma, omega):
-        self.x0 = x0 # Devuelve condición inicial x0
-        self.y0 = y0 # Devuelve condición inicial y0
-        self.X0 = [x0, y0] # Devuelve condición inicial z0
+class Duffing(DynamicSystem):
+    def __init__(self, alpha, beta, delta, gamma, omega):
         self.alpha = alpha # Devuelve parámetro alpha
         self.beta = beta # Devuelve parámetro beta
         self.delta = delta # Devuelve parámetro delta
         self.gamma = gamma # Devuelve parámetro gamma
         self.omega = omega # Devuelve parámetro omega
-        self.params = [alpha, beta, delta, gamma, omega] # Devuelve lista de parámetros params
-        self.params_tuple = (alpha, beta, delta, gamma, omega) # Devuelve tupla de parámetros params_tuple
+        super().__init__(self.func_duffing, [alpha, beta, delta, gamma, omega], name='Duffing')
 
+    @classmethod
+    def func_duffing(x, t, *p):
+        x, y  = x
+        alpha, beta, delta, gamma, omega = p
+        dx = y
+        dy = -delta * y - alpha * x - beta * x**3 + gamma * np.cos(omega * t)
+        return [dx, dy]
 
 
 
@@ -144,47 +138,64 @@ class Duffing:
 # Clase Attractor: Permite representar un atractor de un sistema dinámico a partir de un vector de tiempo t y una matriz de trayectorias x.
 
 
-class Attractor:
+class Trajectory:
     def __init__(self, t, x):
         self.x = x # Devuelve matriz de trayectorias x
         self.t = t # Devuelve vector de tiempo t
+        self.n_var = np.shape(x)[1]
+        self.cols = [f'x{i + 1}' for i in range(self.n_var)]
 
-    def plot_attractor(self, size=(7,7)):
+    def to_table(self, col_names):
+        col_names = [f'x{i + 1}' for i in range(self.n_var)] if col_names is None else col_names
+        trajectory_table = pd.DataFrame(self.x, columns=col_names)
+        trajectory_table = trajectory_table.insert(0, 't', self.t, True)
+        return trajectory_table
+
+    def plot_trajectory3d(self, size=(5,5)):
+        assert n_var == 3, f'Number of variables must be 3, instead got {n_var}'
         fig = plt.figure(figsize=size)
         ax = fig.add_subplot(111, projection='3d')
         ax.plot(self.x[:, 0],
                 self.x[:, 1],
                 self.x[:, 2])
         ax.set_title('Lorenz Attractor')
-        ax.set_xlabel('x')
-        ax.set_ylabel('y')
-        ax.set_zlabel('z')
+        ax.set_xlabel('$x_{1}$')
+        ax.set_ylabel('$x_{2}$')
+        ax.set_zlabel('$x_{3}$')
 
-    def plot_xt(self):
+    def plot_trajectory2d(self, variables=(0,1), size=(5,5)):
+        assert n_var >= 2, f'Number of variables must be greater or equal to 2, instead got {n_var}'
+        fig = plt.figure(figsize=size)
+        ax.plot(self.x[:, variables[0]], self.x[:, variables[1]], 'k-')
+        ax.set_title(f'$x_{variables[0] + 1}$ - x_{variables[1]}')
+        ax.set_ylabel(f'$x_{variables[1]}$')
+        ax.set_xlabel(f'$x_{variables[0]}$')
+
+    def plot_x1t(self):
         fig, ax = plt.subplots(figsize=size)
-        ax.plot(self.t, self.x[:, 0], 'x', label='x(t)')
+        ax.plot(self.t, self.x[:, 0], '$x_{1}$', label='$x_{1}(t)$')
         ax.legend()
-        ax.set_title('x - t')
-        ax.set_xlabel('t')
-        ax.set_ylabel('x(t)')
+        ax.set_title('$x_{1} - t$')
+        ax.set_xlabel('$t$')
+        ax.set_ylabel('$x_{1}(t)$')
 
-    def plot_yt(self):
+    def plot_x2t(self):
+        assert n_var >= 2, f'Number of variables must be greater or equal to 2, instead got {n_var}'
         fig, ax = plt.subplots(figsize=size)
-        ax.plot(self.t, self.x[:, 1], 'y', label='y(t)')
+        ax.plot(self.t, self.x[:, 1], '$x_{2}$', label='$x_{2}(t)$')
         ax.legend()
-        ax.set_title('y - t')
-        ax.set_xlabel('t')
-        ax.set_ylabel('y(t)')
+        ax.set_title('$x_{2} - t$')
+        ax.set_xlabel('$t$')
+        ax.set_ylabel('$x_{2}(t)$')
 
-    def plot_zt(self):
+    def plot_x3t(self):
+        assert n_var == 3, f'Number of variables must be 3, instead got {n_var}'
         fig, ax = plt.subplots(figsize=size)
-        ax.plot(self.t, self.x[:, 2], 'z', label='z(t)')
+        ax.plot(self.t, self.x[:, 2], '$x_{3}$', label='$x_{3}(t)$')
         ax.legend()
-        ax.set_title('z - t')
-        ax.set_xlabel('t')
-        ax.set_ylabel('z(t)')
-
-
+        ax.set_title('$x_{3} - t$')
+        ax.set_xlabel('$t$')
+        ax.set_ylabel('$x_{3}(t)$')
 
 
 class Poincare:
@@ -271,7 +282,7 @@ class Map:
 
     def plot_iterations(self):
         title = 'Z(t)' if self.plane == 3 else 'Y(t)' if self.plane == 2 else 'X(t)'
-        ylabel = 'y(i)' if plane == 3 and axis == 1 or plane == 1 and axis == 3 else 'x(i)' if plane == 3 and axis == 2 or plane == 2 and axis == 3 else 'z(i)' if plane == 2 and axis == 1 or plane == 1 and axis == 2
+        ylabel = 'y(i)' if plane == 3 and axis == 1 or plane == 1 and axis == 3 else 'x(i)' if plane == 3 and axis == 2 or plane == 2 and axis == 3 else 'z(i)' if plane == 2 and axis == 1 or plane == 1 and axis == 2 else None
         fig, ax = plt.subplots(1, figsize=(7,7))
         ax.plot(self.t_iter, self.iterations, 'k.')
         ax.set_title(title)
