@@ -9,4 +9,6 @@ La librería presenta las siguientes funcionalidades:
 
 Para su utilización, el usuario debe definir la función a utilizar, en caso contrario la propia librería cuenta con las ecuaciones de Lorenz y de Dufing integradas, debido a que dentro del estudio de sistema dinámicos dichas expresiones son muy recurrentes.
 
+La documentación se encuentra en:
+
 
