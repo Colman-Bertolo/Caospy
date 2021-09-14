@@ -17,7 +17,7 @@ La documentación se encuentra en:
 
 ## Requerimientos 
 
-Se necesita Python 3.9+ para correr Caospy
+Se necesita Python 3.9+ para correr Caospy, en el archivo requierements.txt
 
 ## Recomendaciones 
 
