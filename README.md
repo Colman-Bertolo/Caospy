@@ -23,5 +23,5 @@ Se necesita Python 3.9+ para correr Caospy
 
 Para agilizar su utilización se recomienda importar de la siguiente manera.
 ```Python
-import Caospy as cp
+import caospy as cp
 ```
