@@ -1,4 +1,4 @@
-# Caospy
+# CaosPy
 Librería destinada al análisis de sistemas dinámicos. 
 
 ## Descripción
