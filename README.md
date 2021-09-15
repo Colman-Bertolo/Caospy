@@ -1,4 +1,4 @@
-# Caospy
+# caospy
 Librería destinada al análisis de sistemas dinámicos. 
 
 ## Descripción
@@ -17,11 +17,11 @@ La documentación se encuentra en:
 
 ## Requerimientos 
 
-Se necesita Python 3.9+ para correr Caospy
+Se necesita Python 3.9+ para correr Caospy, en el archivo requierements.txt
 
 ## Recomendaciones 
 
 Para agilizar su utilización se recomienda importar de la siguiente manera.
 ```Python
-import Caospy as cp
+import caospy as cp
 ```
