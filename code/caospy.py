@@ -41,10 +41,10 @@ class Symbolic(Functional):
             if not isinstance(eq, sp.Eq):
                 eq = sp.Eq(parse_expr(eq, local.copy(), {}), 0)
             self._equations.append(eq)
-        f = []
+        functions = []
         for eq in self._equations:
-            f.append(eq.args[0])
-        dydt = sp.lambdify(([*self._variables], [*self._parameters]), f)
+            functions.append(eq.args[0])
+        dydt = sp.lambdify(([*self._variables], [*self._parameters]), functions)
 
         def fun(x_fun, t_fun, par_fun):
             return dydt(x_fun, par_fun)
