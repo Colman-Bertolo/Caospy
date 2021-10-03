@@ -3,6 +3,7 @@
 # from sympy import *
 
 import types
+
 import numpy as np
 import sympy as sp
 from scipy.integrate import odeint
@@ -11,14 +12,23 @@ from sympy.parsing.sympy_parser import parse_expr
 
 class Functional:
     def __init__(self, func, name):
-        assert isinstance(func, types.FunctionType), f"The first argument must be of the type 'Function', got {type(func)} instead."
-        assert isinstance(name, str), f"The second argument must be of the type 'string' got {type(name)} instead."
+        assert isinstance(
+            func, types.FunctionType
+        ), "The first argument must be of the type 'Function',\n"
+        f"got {type(func)} instead."
+        assert isinstance(
+            name, str
+        ), "The second argument must be of the type 'string',\n"
+        f"got {type(name)} instead."
 
         self.func = func
         self.name = name
 
     def time_evolution(self, x0, ti, tf, n, parameters):
-        assert tf > ti, 'Final integration time must be greater than initial integration time.'
+        assert (
+            tf > ti
+        ), """Final integration time must be greater than
+        initial integration time."""
         t = np.linspace(ti, tf, int(n))
         y = odeint(self.func, x0, t, args=(parameters,))
         return [t, y]
@@ -26,11 +36,18 @@ class Functional:
 
 class Symbolic(Functional):
     def __init__(self, x, f, params, name):
-        assert isinstance(name, str), f'Name must be a string, got {type(name)} instead.'
-        assert all(isinstance(i, list) for i in [x, f, params]), f'The variables, functions and parameters should be entered as lists, got {(type(x), type(f), type(params))} instead.'
+        assert isinstance(
+            name, str
+        ), f"Name must be a string, got {type(name)} instead."
+        assert all(
+            isinstance(i, list) for i in [x, f, params]
+        ), "The variables, functions and parameters"
+        "should be lists, got"
+        f"{(type(x), type(f), type(params))} instead."
         for i in [x, f, params]:
-            assert all(isinstance(j, str) for j in i), f'All the elements must be strings.'
-
+            assert all(
+                isinstance(j, str) for j in i
+            ), "All the elements must be strings."
 
         self._name = name
         self.f = f
@@ -153,7 +170,7 @@ class Duffing(AutoSymbolic):
     _functions = [
         "y",
         "-delta * y - alpha * x - beta * x**3 + gamma * cos(omega * t)",
-        "alpha"
+        "alpha",
     ]
 
 
