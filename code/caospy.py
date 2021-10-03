@@ -2,6 +2,7 @@
 # import pandas as pd
 # from sympy import *
 
+import types
 import numpy as np
 import sympy as sp
 from scipy.integrate import odeint
@@ -10,22 +11,33 @@ from sympy.parsing.sympy_parser import parse_expr
 
 class Functional:
     def __init__(self, func, name):
+        assert isinstance(func, types.FunctionType), f"The first argument must be of the type 'Function', got {type(func)} instead."
+        assert isinstance(name, str), f"The second argument must be of the type 'string' got {type(name)} instead."
+
         self.func = func
         self.name = name
 
-    def time_evolution(self, x0, t0, tf, n, par):
-        t = np.linspace(self.t0, self.tf)
-        y = odeint(self.func, self.x0, t, args=(self.par,))
+    def time_evolution(self, x0, ti, tf, n, parameters):
+        assert tf > ti, 'Final integration time must be greater than initial integration time.'
+        t = np.linspace(ti, tf, int(n))
+        y = odeint(self.func, x0, t, args=(parameters,))
         return [t, y]
 
 
 class Symbolic(Functional):
     def __init__(self, x, f, params, name):
+        assert isinstance(name, str), f'Name must be a string, got {type(name)} instead.'
+        assert all(isinstance(i, list) for i in [x, f, params]), f'The variables, functions and parameters should be entered as lists, got {(type(x), type(f), type(params))} instead.'
+        for i in [x, f, params]:
+            assert all(isinstance(j, str) for j in i), f'All the elements must be strings.'
+
+
         self._name = name
         self.f = f
         self._variables = {}
         self._parameters = {}
         self._equations = []
+
         for v in x:
             if not isinstance(v, sp.Symbol):
                 v = sp.symbols(v)
@@ -49,7 +61,7 @@ class Symbolic(Functional):
         def fun(x_fun, t_fun, par_fun):
             return dydt(x_fun, par_fun)
 
-        super().__init__(fun, self.name)
+        super().__init__(fun, self._name)
 
     def _linear_analysis(self, p, reach=3):
         parameter_list = list(self._parameters.values())
@@ -141,6 +153,7 @@ class Duffing(AutoSymbolic):
     _functions = [
         "y",
         "-delta * y - alpha * x - beta * x**3 + gamma * cos(omega * t)",
+        "alpha"
     ]
 
 
