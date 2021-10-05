@@ -31,7 +31,7 @@ class Functional:
         initial integration time."""
         t = np.linspace(ti, tf, int(n))
         y = odeint(self.func, x0, t, args=(parameters,))
-        return Trajectory(t, y)
+        return [t, y]
 
     def poincare(self, x0, parameters, t_desc=5000, t_calc=50, step=0.01):
         t_discard = np.linspace(0, t_desc, int(t_desc / step))
@@ -94,20 +94,37 @@ class Symbolic(Functional):
         replace = list(zip(parameter_list, p))
         equalities = [eqn.subs(replace) for eqn in self._equations]
         roots = sp.solve(equalities, list(self._variables.values()))
-        roots = [list(i) for i in roots]
-        for i in range(len(roots)):
-            roots[i] = list(map(float, roots[i]))
+        if type(roots) == dict:
+            roots = list(roots.values())
+        elif type(roots) == list:
+            try:
+                roots = [list(i) for i in roots]
+                for i in range(len(roots)):
+                    roots[i] = list(map(float, roots[i]))
+            except:
+                for i in range(len(roots)):
+                    roots[i] = float(roots[i])
+
         if reach == 1:
             return roots
 
         expresions = [eqn.args[0] for eqn in self._equations]
         equations = [exp.subs(replace) for exp in expresions]
         jacobian = np.array(
-            [[sp.diff(eq, var) for eq in equations] for var in self._variables]
+            [
+                [sp.diff(eq, var) for eq in equations]
+                for var in self._variables
+            ]
         )
-        replace_values = [list(root) for root in roots]
+
         variable_list = list(self._variables.values())
-        replace = [list(zip(variable_list, i)) for i in replace_values]
+        try:
+            replace_values = [list(root) for root in roots]
+            replace = [list(zip(variable_list, i)) for i in replace_values]
+        except:
+            replace_values = [root for root in roots]
+            replace = [list(zip(variable_list, roots))]
+
         a_matrices = []
 
         for j in replace:
@@ -529,3 +546,13 @@ class Map:
         ax.set_title(title)
         ax.set_xlabel("n")
         ax.set_ylabel(ylabel)"""
+
+
+name = "cualquiera"
+variables = [" x ", " y "]
+parameters = ["sigma ", "beta"]
+functions = ["x + y", "sigma * x- beta * y"]
+#derivate = Symbolic(variables, functions, param, 'name')
+p = [4.0 , 2.0]
+m = TwoDim(variables, functions, parameters, name)
+l = m.eigenvalues(p)
