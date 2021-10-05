@@ -546,13 +546,3 @@ class Map:
         ax.set_title(title)
         ax.set_xlabel("n")
         ax.set_ylabel(ylabel)"""
-
-
-name = "cualquiera"
-variables = [" x ", " y "]
-parameters = ["sigma ", "beta"]
-functions = ["x + y", "sigma * x- beta * y"]
-#derivate = Symbolic(variables, functions, param, 'name')
-p = [4.0 , 2.0]
-m = TwoDim(variables, functions, parameters, name)
-l = m.eigenvalues(p)
