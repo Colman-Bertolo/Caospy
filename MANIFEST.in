@@ -1,0 +1,6 @@
+include README.md
+
+
+exclude tox.ini
+exclude pyproject.toml
+recursive-exclude tests *
