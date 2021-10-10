@@ -31,7 +31,8 @@ class Functional:
         initial integration time."""
         t = np.linspace(ti, tf, int(n))
         y = odeint(self.func, x0, t, args=(parameters,))
-        return [t, y]
+        variables = list(self._variables.values())
+        return Trajectory(t, y, variables)
 
     def poincare(self, x0, parameters, t_desc=5000, t_calc=50, step=0.01):
         t_discard = np.linspace(0, t_desc, int(t_desc / step))
@@ -39,8 +40,8 @@ class Functional:
         t_calculate = np.linspace(0, t_calc, int(t_calc / step))
         x0 = [x[i, -1] for i in range(np.shape(x)[-1])]
         x = odeint(self.func, x0, t_calculate, args=(parameters,))
-        p = Poincare(t_calculate, x)
-        return p
+        variables = list(self._variables.values())
+        return Poincare(t_calculate, x, variables)
 
 
 class Symbolic(Functional):
@@ -57,6 +58,11 @@ class Symbolic(Functional):
             assert all(
                 isinstance(j, str) for j in i
             ), "All the elements must be strings."
+        assert len(x) == len(
+            f
+        ), f"""System must have equal number of variables
+        and equations, insead has {len(x)} variables
+        and {len(f)} equations"""
 
         self._name = name
         self.f = f
@@ -94,46 +100,63 @@ class Symbolic(Functional):
         replace = list(zip(parameter_list, p))
         equalities = [eqn.subs(replace) for eqn in self._equations]
         roots = sp.solve(equalities, list(self._variables.values()))
-        if type(roots) == dict:
-            roots = list(roots.values())
-        elif type(roots) == list:
-            try:
-                roots = [list(i) for i in roots]
-                for i in range(len(roots)):
-                    roots[i] = list(map(float, roots[i]))
-            except:
-                for i in range(len(roots)):
-                    roots[i] = float(roots[i])
+        if isinstance(roots, dict):
+            roots = [tuple(roots.values())]
 
+        for i in range(len(roots)):
+            try:
+                roots[i] = list(map(float, roots[i]))
+            except TypeError:
+                try:
+                    roots[i] = list(map(complex, roots[i]))
+                except TypeError:
+                    roots[i] = list(roots[i])
+
+        roots = np.array(roots)
         if reach == 1:
             return roots
 
         expresions = [eqn.args[0] for eqn in self._equations]
         equations = [exp.subs(replace) for exp in expresions]
         jacobian = np.array(
-            [
-                [sp.diff(eq, var) for eq in equations]
-                for var in self._variables
-            ]
+            [[sp.diff(eq, var) for var in self._variables] for eq in equations]
         )
 
         variable_list = list(self._variables.values())
-        try:
-            replace_values = [list(root) for root in roots]
-            replace = [list(zip(variable_list, i)) for i in replace_values]
-        except:
-            replace_values = [root for root in roots]
-            replace = [list(zip(variable_list, roots))]
-
+        replace_values = [list(root) for root in roots]
+        replace = [list(zip(variable_list, i)) for i in replace_values]
         a_matrices = []
-
         for j in replace:
-            a_matrices.append(
-                np.array(
-                    list(map(np.vectorize(lambda i: i.subs(j)), jacobian))
-                ).astype("float64")
-            )
+            try:
+                a_matrices.append(
+                    np.array(
+                        list(map(np.vectorize(lambda i: i.subs(j)), jacobian))
+                    ).astype("float64")
+                )
+            except TypeError:
+                try:
+                    a_matrices.append(
+                        np.array(
+                            list(
+                                map(
+                                    np.vectorize(lambda i: i.subs(j)), jacobian
+                                )
+                            )
+                        ).astype("complex128")
+                    )
+                except TypeError:
+                    a_matrices.append(
+                        np.array(
+                            list(
+                                map(
+                                    np.vectorize(lambda i: i.subs(j)), jacobian
+                                )
+                            ),
+                            dtype=object,
+                        )
+                    )
         if reach == 5:
+            a_matrices = np.array(a_matrices)
             return a_matrices
 
         elif reach == 2:
@@ -153,7 +176,7 @@ class Symbolic(Functional):
         return self._linear_analysis(p, 1)
 
 
-class MultiDimMixin(Symbolic):
+class MultiVarMixin(Symbolic):
     def eigenvalues(self, p):
         return self._linear_analysis(p, 2)
 
@@ -215,10 +238,13 @@ class OneDimMixin(Symbolic):
 
 class OneDim(OneDimMixin, Symbolic):
     def __init__(self, x, f, params, name):
+        assert (
+            len(x) == 1 & len(f) == 1
+        ), f"""System shape is {len(x)} by {len(f)} but it should be 1 by 1"""
         super().__init__(x, f, params, name)
 
 
-class TwoDimMixin(MultiDimMixin, Symbolic):
+class TwoDimMixin(MultiVarMixin, Symbolic):
     def fixed_point_classify(self, params_values):
         a = self._linear_analysis(params_values, reach=5)
         traces = []
@@ -266,39 +292,48 @@ class TwoDimMixin(MultiDimMixin, Symbolic):
 
         pd.set_option("display.precision", 2)
         roots = self.fixed_points(params_values)
-        roots = np.array(roots)
         eigen = self.eigenvalues(params_values)
-        data = pd.DataFrame(
-            list(
-                zip(
-                    roots[:, 0],
-                    roots[:, 1],
-                    eigen[:, 0],
-                    eigen[:, 1],
-                    traces,
-                    dets,
-                    classification,
-                )
-            ),
-            columns=[
-                f"${list(self._variables.values())[0]}*$",
-                f"${list(self._variables.values())[1]}*$",
-                "$\u03BB_{1}$",
-                "$\u03BB_{2}$",
-                "$\u03C3$",
-                "$\u0394$",
-                "$Type$",
-            ],
-        )
+        traces = np.array(traces)
+        dets = np.array(dets)
+        classification = np.array(classification)
+        data_array = np.empty((roots.shape[0], 7), dtype=object)
+        for i in range(roots.shape[0]):
+            data_array[i][0] = roots[i][0]
+            data_array[i][1] = roots[i][1]
+            data_array[i][2] = eigen[i][0]
+            data_array[i][3] = eigen[i][1]
+            data_array[i][4] = traces[i]
+            data_array[i][5] = dets[i]
+            data_array[i][6] = classification[i]
+
+        cols = [f"${v}$" for v in list(self._variables.values())] + [
+            "$\u03BB_{1}$",
+            "$\u03BB_{2}$",
+            "$\u03C3$",
+            "$\u0394$",
+            "$Type$",
+        ]
+
+        data = pd.DataFrame(data_array, columns=cols)
         return data
 
 
 class TwoDim(TwoDimMixin, Symbolic):
     def __init__(self, x, f, params, name):
+        assert (
+            len(x) == 2 & len(f) == 2
+        ), f"""System shape is {len(x)} by {len(f)} but it should be 2 by 2"""
         super().__init__(x, f, params, name)
 
 
-# class ThreeDim(MultiDimMixin, Symbolic):
+class ThreeDim(MultiVarMixin, Symbolic):
+    def __init__(self, x, f, params, name):
+        assert (
+            len(x) == 3 & len(f) == 3
+        ), f"""System shape is {len(x)} by {len(f)} but it should be 3 by 3"""
+        super().__init__(x, f, params, name)
+
+
 # class Nonautonomous(Symbolic):
 
 
@@ -313,7 +348,7 @@ class AutoSymbolic(Symbolic):
         )
 
 
-class Lorenz(MultiDimMixin, AutoSymbolic):
+class Lorenz(MultiVarMixin, AutoSymbolic):
     _name = "Lorenz"
     _variables = ["x", "y", "z"]
     _parameters = ["sigma", "rho", "beta"]
@@ -327,7 +362,6 @@ class Duffing(AutoSymbolic):
     _functions = [
         "y",
         "-delta * y - alpha * x - beta * x**3 + gamma * cos(omega * t)",
-        "alpha",
     ]
 
 
@@ -339,19 +373,17 @@ class Logistic(OneDimMixin, AutoSymbolic):
 
 
 class Trajectory:
-    def __init__(self, t, x):
+    def __init__(self, t, x, variables):
         self.x = x  # Devuelve matriz de trayectorias x
         self.t = t  # Devuelve vector de tiempo t
         self.n_var = np.shape(x)[1]
-        self.cols = [f"x{i + 1}" for i in range(self.n_var)]
+        self.cols = ["t"] + [f"{v}" for v in variables]
 
     def to_table(self):
-        col_names = [f"x{i + 1}" for i in range(self.n_var)]
+        col_names = self.cols
         pd.set_option("display.precision", 2)
-        trajectory_table = pd.DataFrame(
-            list(zip(self.t, self.x)), columns=col_names
-        )
-        # trajectory_table = trajectory_table.insert(0, "t", self.t, True)
+        merge_array = np.insert(self.x, 0, self.t, axis=1)
+        trajectory_table = pd.DataFrame(merge_array, columns=col_names)
         return trajectory_table
 
     """def plot_trajectory3d(self, size=(5, 5)):
@@ -410,8 +442,8 @@ class Trajectory:
 
 
 class Poincare(Trajectory):
-    def __init__(self, t, x):
-        super().__init__(t, x)
+    def __init__(self, t, x, variables):
+        super().__init__(t, x, variables)
 
     def _fit(self, a, plane, grade, axis):
         assert plane >= 1 and plane < 4
