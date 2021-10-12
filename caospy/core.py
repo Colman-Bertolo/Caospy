@@ -31,8 +31,7 @@ class Functional:
         initial integration time."""
         t = np.linspace(ti, tf, int(n))
         y = odeint(self.func, x0, t, args=(parameters,))
-        variables = list(self._variables.values())
-        return Trajectory(t, y, variables)
+        return [t, y]
 
     def poincare(self, x0, parameters, t_desc=5000, t_calc=50, step=0.01):
         t_discard = np.linspace(0, t_desc, int(t_desc / step))
