@@ -6,63 +6,71 @@ import types
 import numpy as np
 import pandas as pd
 import sympy as sp
-from scipy.integrate import odeint
+from scipy.integrate import solve_ivp
 from sympy.parsing.sympy_parser import parse_expr
+from sympy import *
 
 
 class Functional:
     def __init__(self, func, name):
-        assert isinstance(
-            func, types.FunctionType
-        ), "The first argument must be of the type 'Function',\n"
-        f"got {type(func)} instead."
-        assert isinstance(
-            name, str
-        ), "The second argument must be of the type 'string',\n"
-        f"got {type(name)} instead."
-
+        if not isinstance(func, types.FunctionType):
+            raise Exception(
+                'The first argument must be a callable' +
+                f'got {type(func)} instead.'
+            )
+        if not isinstance(name, str):
+            raise Exception(
+                'The second argument must be a string'+
+                f'got {type(name)} instead.'
+            )
         self.func = func
         self.name = name
 
-    def time_evolution(self, x0, parameters, ti=0, tf=200, n=2000):
-        assert (
-            tf > ti
-        ), """Final integration time must be greater than
-        initial integration time."""
-        t = np.linspace(ti, tf, int(n))
-        y = odeint(self.func, x0, t, args=(parameters,))
-        variables = list(self._variables.values())
-        return Trajectory(t, y, variables)
+    def time_evolution(self, x0, parameters, ti=0, tf=200,
+                       Rel_Tol=1e-10, Abs_Tol=1e-12, Max_Step=0.004):
+        if not tf > ti:
+            raise Exception(
+                'Final integration time must be'+
+                'greater than initial integration time.'
+            )
+        sol = solve_ivp(self.func, [ti, tf], x0, args=(parameters,),
+                        rtol=Rel_Tol, atol=Abs_Tol, max_step=Max_Step)
+        return sol.t, sol.y
 
-    def poincare(self, x0, parameters, t_desc=5000, t_calc=50, step=0.01):
-        t_discard = np.linspace(0, t_desc, int(t_desc / step))
-        x = odeint(self.func, x0, t_discard, args=(parameters,))
-        t_calculate = np.linspace(0, t_calc, int(t_calc / step))
-        x0 = [x[i, -1] for i in range(np.shape(x)[-1])]
-        x = odeint(self.func, x0, t_calculate, args=(parameters,))
+    def poincare(self, x0, parameters, t_desc=5000, t_calc=50,
+                 Rel_Tol=1e-10, Abs_Tol=1e-12, Max_Step=0.01):
+        sol_1 = solve_ivp(self.func, [0, t_desc], x0, args=(parameters,),
+                        rtol=Rel_Tol, atol=Abs_Tol, max_step=Max_Step)
+        x0_2 = [sol.y[i, -1] for i in range(np.shape(sol.y)[-1])]
+        sol_2 = solve_ivp(self.func, [0, t_calc], x0_2, args=(parameters,),
+                        rtol=Rel_Tol, atol=Abs_Tol, max_step=Max_Step)
         variables = list(self._variables.values())
-        return Poincare(t_calculate, x, variables)
+        return Poincare(sol_2.t, sol_2.y, variables)
 
 
 class Symbolic(Functional):
     def __init__(self, x, f, params, name):
-        assert isinstance(
-            name, str
-        ), f"Name must be a string, got {type(name)} instead."
-        assert all(
-            isinstance(i, list) for i in [x, f, params]
-        ), "The variables, functions and parameters"
-        "should be lists, got"
-        f"{(type(x), type(f), type(params))} instead."
+        if not isinstance(name, str):
+            raise Exception(
+                f'Name must be a string, got {type(name)} instead.'
+                           )
+        if not all(isinstance(i, list) for i in [x, f, params]):
+            raise Exception(
+                'The variables, functions and parameters'+
+                'should be lists, got'+
+                f'{(type(x), type(f), type(params))} instead.'
+            )
         for i in [x, f, params]:
-            assert all(
-                isinstance(j, str) for j in i
-            ), "All the elements must be strings."
-        assert len(x) == len(
-            f
-        ), f"""System must have equal number of variables
-        and equations, insead has {len(x)} variables
-        and {len(f)} equations"""
+            if not all(isinstance(j, str) for j in i):
+                raise Exception(
+                    'All the elements must be strings.'
+                               )
+        if not len(x) == len(f):
+            raise Exception(
+                'System must have equal number of variables'+
+                f'and equations, insead has {len(x)} variables'+
+                f'and {len(f)} equations'
+            )
 
         self._name = name
         self.f = f
@@ -86,8 +94,12 @@ class Symbolic(Functional):
                 eq = sp.Eq(parse_expr(eq, local.copy(), {}), 0)
             self._equations.append(eq)
         function = []
-        for eq in self._equations:
-            function.append(eq.args[0])
+        for i in range(len(self._equations)):
+            try:
+                function.append(self._equations[i].args[0])
+            except IndexError:
+                function.append(parse_expr(self.f[i], local.copy(), {}))
+
         dydt = sp.lambdify(([*self._variables], [*self._parameters]), function)
 
         def fun(x_fun, t_fun, par_fun):
@@ -95,12 +107,37 @@ class Symbolic(Functional):
 
         super().__init__(fun, self._name)
 
-    def _linear_analysis(self, p, reach=3):
+    def _linear_analysis(self, p, initial_guess, reach=3):
+        if len(initial_guess) == 0:
+            initial_guess = [0 for i in self._variables.values()]
+
         parameter_list = list(self._parameters.values())
         replace = list(zip(parameter_list, p))
         equalities = [eqn.subs(replace) for eqn in self._equations]
-        roots = sp.solve(equalities, list(self._variables.values()))
+        try:
+            roots = sp.solve(equalities, list(self._variables.values()))
+        except NotImplementedError:
+            try:
+                roots = [tuple(sp.nsolve(
+                            equalities,
+                            list(self._variables.values()),
+                            initial_guess
+                ))]
+            except TypeError:
+                raise Exception(
+                    'Initial guess is not allowed, try with another set of values'
+                )
+        if len(roots) == 0:
+            return [None, None, None, None]
+
         if isinstance(roots, dict):
+            var_values = list(self._variables.values())
+            roots_keys = list(roots.keys())
+            if var_values != roots_keys:
+                for k in var_values:
+                    if k not in roots_keys:
+                        roots[k] = k
+
             roots = [tuple(roots.values())]
 
         for i in range(len(roots)):
@@ -114,7 +151,7 @@ class Symbolic(Functional):
 
         roots = np.array(roots)
         if reach == 1:
-            return roots
+            return [roots, None, None, None]
 
         expresions = [eqn.args[0] for eqn in self._equations]
         equations = [exp.subs(replace) for exp in expresions]
@@ -157,58 +194,45 @@ class Symbolic(Functional):
                     )
         if reach == 5:
             a_matrices = np.array(a_matrices)
-            return a_matrices
+            return [None, a_matrices, None, None]
 
         elif reach == 2:
             w, v = np.linalg.eig(a_matrices)
-            return w
+            return [None, None, w, None]
 
         elif reach == 3:
             w, v = np.linalg.eig(a_matrices)
             v = np.array([i.T for i in v])
-            return v
+            return [None, None, v, None]
         else:
             w, v = np.linalg.eig(a_matrices)
             v = np.array([i.T for i in v])
-            return roots, w, v
+            return [roots, a_matrices, w, v]
 
-    def fixed_points(self, p):
-        return self._linear_analysis(p, 1)
+    def fixed_points(self, p, initial_guess=[]):
+        return self._linear_analysis(p, initial_guess, 1)[0]
 
 
 class MultiVarMixin(Symbolic):
-    def eigenvalues(self, p):
-        return self._linear_analysis(p, 2)
+    def eigenvalues(self, p, initial_guess=[]):
+        return self._linear_analysis(p, initial_guess, 2)[2]
 
-    def eigenvectors(self, p):
-        return self._linear_analysis(p, 3)
+    def eigenvectors(self, p, initial_guess=[]):
+        return self._linear_analysis(p, initial_guess, 3)[3]
 
-    def full_linearize(self, p):
-        return self._linear_analysis(p, 4)
+    def full_linearize(self, p, initial_guess=[]):
+        return self._linear_analysis(p, initial_guess, 4)
 
 
 class OneDimMixin(Symbolic):
-
-    """def diff_plot(self, parameters, x_lim, dx_lim, n=1000):
-    x_points = np.linspace(x_lim[0], x_lim[1], n)
-    dx_points = []
-    for x in x_points:
-        dx_points.append(self.func((x, ), 1, parameters))
-
-    plt.plot(x_points, dx_points)
-    plt.title("Differential plot")
-    plt.ylabel("d" + list(self._variables.keys())[0])
-    plt.xlabel(list(self._variables.keys())[0])
-    plt.xlim(x_lim)
-    plt.ylim(dx_lim)
-    plt.grid()
-    plt.show()"""
 
     def stability(self, parameters):
         replace_params = list(zip(self._parameters.values(), parameters))
         equation = self._equations[0].args[0].subs(replace_params)
         derivative = sp.diff(equation, list(self._variables.values())[0])
         zero = self.fixed_points(parameters)
+        if zero == None:
+            return 'There are no fixed points to evaluate'
         replace_variables = []
         for z in zero:
             replace_variables.append(list(zip(self._variables, z)))
@@ -238,15 +262,19 @@ class OneDimMixin(Symbolic):
 
 class OneDim(OneDimMixin, Symbolic):
     def __init__(self, x, f, params, name):
-        assert (
-            len(x) == 1 & len(f) == 1
-        ), f"""System shape is {len(x)} by {len(f)} but it should be 1 by 1"""
+        if not (len(x) == 1 & len(f) == 1):
+            raise Exception(
+                f'System shape is {len(x)} by {len(f)} but it should be 1 by 1'
+            )
         super().__init__(x, f, params, name)
 
 
 class TwoDimMixin(MultiVarMixin, Symbolic):
-    def fixed_point_classify(self, params_values):
-        a = self._linear_analysis(params_values, reach=5)
+    def fixed_point_classify(self, params_values, initial_guess=[]):
+        a = self._linear_analysis(params_values, initial_guess, reach=5)[1]
+        if a is None:
+            return 'There is no fixed points to evaluate'
+
         traces = []
         dets = []
         classification = []
@@ -256,7 +284,18 @@ class TwoDimMixin(MultiVarMixin, Symbolic):
             traces.append(np.around(complex(trace), 2))
             dets.append(np.around(complex(det), 2))
             if det == 0:
-                classification.append("Non Isolated Fixed-Point")
+                if trace < 0:
+                    classification.append(
+                        '''Non Isolated Fixed-Points, Line of Lyapunov stable fixed points'''
+                    )
+                elif trace == 0:
+                    classification.append(
+                        '''Non Isolated Fixed-Points, Plane of fixed points'''
+                    )
+                elif trace > 0:
+                    classification.append(
+                        '''Non Isolated Fixed-Points, Line of unstable fixed points'''
+                    )
 
             elif det < 0:
                 classification.append("Saddle")
@@ -290,9 +329,9 @@ class TwoDimMixin(MultiVarMixin, Symbolic):
                         elif trace < 0:
                             classification.append("Stable Degenerate Node")
 
-        pd.set_option("display.precision", 2)
-        roots = self.fixed_points(params_values)
-        eigen = self.eigenvalues(params_values)
+
+        roots = self.fixed_points(params_values, initial_guess)
+        eigen = self.eigenvalues(params_values, initial_guess)
         traces = np.array(traces)
         dets = np.array(dets)
         classification = np.array(classification)
@@ -313,28 +352,29 @@ class TwoDimMixin(MultiVarMixin, Symbolic):
             "$\u0394$",
             "$Type$",
         ]
-
+        pd.set_option("display.precision", 2)
         data = pd.DataFrame(data_array, columns=cols)
         return data
 
 
 class TwoDim(TwoDimMixin, Symbolic):
     def __init__(self, x, f, params, name):
-        assert (
-            len(x) == 2 & len(f) == 2
-        ), f"""System shape is {len(x)} by {len(f)} but it should be 2 by 2"""
+        if not (len(x) == 2 & len(f) == 2):
+            raise Exception(
+                f'System shape is {len(x)} by'+
+                f'{len(f)} but it should be 2 by 2'
+            )
         super().__init__(x, f, params, name)
 
 
-class ThreeDim(MultiVarMixin, Symbolic):
+class MultiDim(MultiVarMixin, Symbolic):
     def __init__(self, x, f, params, name):
-        assert (
-            len(x) == 3 & len(f) == 3
-        ), f"""System shape is {len(x)} by {len(f)} but it should be 3 by 3"""
+        if not (len(x) == 3 & len(f) == 3):
+            raise Exception(
+                f'System shape is {len(x)} by'+
+                '{len(f)} but it should be 3 by 3'
+            )
         super().__init__(x, f, params, name)
-
-
-# class Nonautonomous(Symbolic):
 
 
 class AutoSymbolic(Symbolic):
@@ -386,68 +426,20 @@ class Trajectory:
         trajectory_table = pd.DataFrame(merge_array, columns=col_names)
         return trajectory_table
 
-    """def plot_trajectory3d(self, size=(5, 5)):
-        assert (
-            self.n_var == 3
-        ), f"Number of variables must be 3, instead got {self.n_var}"
-        fig = plt.figure(figsize=size)
-        ax = fig.add_subplot(111, projection="3d")
-        ax.plot(self.x[:, 0], self.x[:, 1], self.x[:, 2])
-        ax.set_title("Lorenz Attractor")
-        ax.set_xlabel("$x_{1}$")
-        ax.set_ylabel("$x_{2}$")
-        ax.set_zlabel("$x_{3}$")
-
-    def plot_trajectory2d(self, variables=(0, 1), size=(5, 5)):
-        assert (
-            self.n_var >= 2
-        ), "Number of variables must be greater or equal to 2"
-        f", instead got {self.n_var}"
-        fig, ax = plt.figure(figsize=size)
-        ax.plot(self.x[:, variables[0]], self.x[:, variables[1]], "k-")
-        ax.set_title(f"$x_{variables[0] + 1}$ - x_{variables[1]}")
-        ax.set_ylabel(f"$x_{variables[1]}$")
-        ax.set_xlabel(f"$x_{variables[0]}$")
-
-    def plot_x1t(self, size=(5, 5)):
-        fig, ax = plt.subplots(figsize=size)
-        ax.plot(self.t, self.x[:, 0], "$x_{1}$", label="$x_{1}(t)$")
-        ax.legend()
-        ax.set_title("$x_{1} - t$")
-        ax.set_xlabel("$t$")
-        ax.set_ylabel("$x_{1}(t)$")
-
-    def plot_x2t(self, size=(5, 5)):
-        assert (
-            self.n_var >= 2
-        ), "Number of variables must be greater or equal to 2,"
-        f"instead got {self.n_var}"
-        fig, ax = plt.subplots(figsize=size)
-        ax.plot(self.t, self.x[:, 1], "$x_{2}$", label="$x_{2}(t)$")
-        ax.legend()
-        ax.set_title("$x_{2} - t$")
-        ax.set_xlabel("$t$")
-        ax.set_ylabel("$x_{2}(t)$")
-
-    def plot_x3t(self, size=(5, 5)):
-        assert (
-            self.n_var == 3
-        ), f"Number of variables must be 3, instead got {self.n_var}"
-        fig, ax = plt.subplots(figsize=size)
-        ax.plot(self.t, self.x[:, 2], "$x_{3}$", label="$x_{3}(t)$")
-        ax.legend()
-        ax.set_title("$x_{3} - t$")
-        ax.set_xlabel("$t$")
-        ax.set_ylabel("$x_{3}(t)$")"""
-
 
 class Poincare(Trajectory):
     def __init__(self, t, x, variables):
         super().__init__(t, x, variables)
 
     def _fit(self, a, plane, grade, axis):
-        assert plane >= 1 and plane < 4
-        assert axis >= 1 and axis < 4
+        if not plane >= 1 and plane < 4:
+            raise Exception(
+                'Specified plane must be between 1 and 3'
+            )
+        if not axis >= 1 and axis < 4:
+            raise Exception(
+            'Specified axis must be between 1 and 3'
+            )
 
         t = np.delete(self.t, [-1, -2])
 
@@ -490,24 +482,6 @@ class Poincare(Trajectory):
 
         return t_map, xmap, x2
 
-    def z_map(self, a=0, axis=1, grade=1):
-        plane = 3
-        fit = self._fit(a, plane, grade, axis)
-        map_z = Map(fit, plane, axis)
-        return map_z
-
-    def y_map(self, a=0, axis=1, grade=1):
-        plane = 2
-        fit = self._fit(a, plane, grade, axis)
-        map_y = Map(fit, plane, axis)
-        return map_y
-
-    def x_map(self, a=0, axis=2, grade=1):
-        plane = 1
-        fit = self._fit(a, plane, grade, axis)
-        map_x = Map(fit, plane, axis)
-        return map_x
-
 
 class Map:
     def __init__(self, t, n, i, plane, axis):
@@ -517,64 +491,3 @@ class Map:
         self.t_iter = t
         self.plane = plane
         self.axis = axis
-
-    """def plot_cobweb(self):
-        title = (
-            "Z map"
-            if self.plane == 3
-            else "Y map"
-            if self.plane == 2
-            else "X map"
-        )
-        xlabel = (
-            "z(i)"
-            if self.plane == 3
-            else "y(i)"
-            if self.plane == 2
-            else "x(i)"
-        )
-        ylabel = (
-            "z(i+1)"
-            if self.plane == 3
-            else "y(i+1)"
-            if self.plane == 2
-            else "x(i+1)"
-        )
-        fig, ax = plt.subplots(1, figsize=(7, 7))
-        ax.plot(self.n0, self.n1, "r;")
-        ax.plot(np.linspace(0, 800, 800), np.linspace(0, 800, 800), "k-")
-        ax.set_title(title)
-        ax.set_xlabel(xlabel)
-        ax.set_ylabel(ylabel)
-
-    def plot_iterations(self):
-        title = (
-            "Z(t)"
-            if self.plane == 3
-            else "Y(t)"
-            if self.plane == 2
-            else "X(t)"
-        )
-        ylabel = (
-            "y(i)"
-            if self.plane == 3
-            and self.axis == 1
-            or self.plane == 1
-            and self.axis == 3
-            else "x(i)"
-            if self.plane == 3
-            and self.axis == 2
-            or self.plane == 2
-            and self.axis == 3
-            else "z(i)"
-            if self.plane == 2
-            and self.axis == 1
-            or self.plane == 1
-            and self.axis == 2
-            else None
-        )
-        fig, ax = plt.subplots(1, figsize=(7, 7))
-        ax.plot(self.t_iter, self.iterations, "k.")
-        ax.set_title(title)
-        ax.set_xlabel("n")
-        ax.set_ylabel(ylabel)"""
