@@ -1,5 +1,5 @@
+# from matplotlib import pyplot as plt
 # from sympy import *
-# import matplotlib.pyplot as plt
 
 import types
 
@@ -8,42 +8,78 @@ import pandas as pd
 import sympy as sp
 from scipy.integrate import solve_ivp
 from sympy.parsing.sympy_parser import parse_expr
-from sympy import *
 
 
 class Functional:
     def __init__(self, func, name):
         if not isinstance(func, types.FunctionType):
             raise Exception(
-                'The first argument must be a callable' +
-                f'got {type(func)} instead.'
+                "The first argument must be a callable"
+                + f"got {type(func)} instead."
             )
         if not isinstance(name, str):
             raise Exception(
-                'The second argument must be a string'+
-                f'got {type(name)} instead.'
+                "The second argument must be a string"
+                + f"got {type(name)} instead."
             )
         self.func = func
         self.name = name
 
-    def time_evolution(self, x0, parameters, ti=0, tf=200,
-                       Rel_Tol=1e-10, Abs_Tol=1e-12, Max_Step=0.004):
+    def time_evolution(
+        self,
+        x0,
+        parameters,
+        ti=0,
+        tf=200,
+        rel_tol=1e-10,
+        abs_tol=1e-12,
+        mx_step=0.004,
+    ):
         if not tf > ti:
             raise Exception(
-                'Final integration time must be'+
-                'greater than initial integration time.'
+                "Final integration time must be"
+                + "greater than initial integration time."
             )
-        sol = solve_ivp(self.func, [ti, tf], x0, args=(parameters,),
-                        rtol=Rel_Tol, atol=Abs_Tol, max_step=Max_Step)
+        sol = solve_ivp(
+            self.func,
+            [ti, tf],
+            x0,
+            args=(parameters,),
+            rtol=rel_tol,
+            atol=abs_tol,
+            max_step=mx_step,
+        )
         return sol.t, sol.y
 
-    def poincare(self, x0, parameters, t_desc=5000, t_calc=50,
-                 Rel_Tol=1e-10, Abs_Tol=1e-12, Max_Step=0.01):
-        sol_1 = solve_ivp(self.func, [0, t_desc], x0, args=(parameters,),
-                        rtol=Rel_Tol, atol=Abs_Tol, max_step=Max_Step)
-        x0_2 = [sol.y[i, -1] for i in range(np.shape(sol.y)[-1])]
-        sol_2 = solve_ivp(self.func, [0, t_calc], x0_2, args=(parameters,),
-                        rtol=Rel_Tol, atol=Abs_Tol, max_step=Max_Step)
+    def poincare(
+        self,
+        x0,
+        parameters,
+        t_desc=5000,
+        t_calc=50,
+        rel_tol=1e-10,
+        abs_tol=1e-12,
+        mx_step=0.01,
+    ):
+        sol_1 = solve_ivp(
+            self.func,
+            [0, t_desc],
+            x0,
+            args=(parameters,),
+            rtol=rel_tol,
+            atol=abs_tol,
+            max_step=mx_step,
+        )
+        x0_2 = [sol_1.y[i, -1] for i in range(np.shape(sol_1.y)[-1])]
+        sol_2 = solve_ivp(
+            self.func,
+            [0, t_calc],
+            x0_2,
+            args=(parameters,),
+            rtol=rel_tol,
+            atol=abs_tol,
+            max_step=mx_step,
+        )
         variables = list(self._variables.values())
         return Poincare(sol_2.t, sol_2.y, variables)
 
@@ -52,24 +88,22 @@ class Symbolic(Functional):
     def __init__(self, x, f, params, name):
         if not isinstance(name, str):
             raise Exception(
-                f'Name must be a string, got {type(name)} instead.'
-                           )
+                f"Name must be a string, got {type(name)} instead."
+            )
         if not all(isinstance(i, list) for i in [x, f, params]):
             raise Exception(
-                'The variables, functions and parameters'+
-                'should be lists, got'+
-                f'{(type(x), type(f), type(params))} instead.'
+                "The variables, functions and parameters"
+                + "should be lists, got"
+                + f"{(type(x), type(f), type(params))} instead."
             )
         for i in [x, f, params]:
             if not all(isinstance(j, str) for j in i):
-                raise Exception(
-                    'All the elements must be strings.'
-                               )
+                raise Exception("All the elements must be strings.")
         if not len(x) == len(f):
             raise Exception(
-                'System must have equal number of variables'+
-                f'and equations, insead has {len(x)} variables'+
-                f'and {len(f)} equations'
+                "System must have equal number of variables"
+                + f"and equations, insead has {len(x)} variables"
+                + f"and {len(f)} equations"
             )
 
         self._name = name
@@ -118,14 +152,19 @@ class Symbolic(Functional):
             roots = sp.solve(equalities, list(self._variables.values()))
         except NotImplementedError:
             try:
-                roots = [tuple(sp.nsolve(
+                roots = [
+                    tuple(
+                        sp.nsolve(
                             equalities,
                             list(self._variables.values()),
-                            initial_guess
-                ))]
+                            initial_guess,
+                        )
+                    )
+                ]
             except TypeError:
                 raise Exception(
-                    'Initial guess is not allowed, try with another set of values'
+                    "Initial guess is not allowed,"
+                    + "try with another set of values"
                 )
         if len(roots) == 0:
             return [None, None, None, None]
@@ -225,14 +264,13 @@ class MultiVarMixin(Symbolic):
 
 
 class OneDimMixin(Symbolic):
-
     def stability(self, parameters):
         replace_params = list(zip(self._parameters.values(), parameters))
         equation = self._equations[0].args[0].subs(replace_params)
         derivative = sp.diff(equation, list(self._variables.values())[0])
         zero = self.fixed_points(parameters)
-        if zero == None:
-            return 'There are no fixed points to evaluate'
+        if zero is None:
+            return "There are no fixed points to evaluate"
         replace_variables = []
         for z in zero:
             replace_variables.append(list(zip(self._variables, z)))
@@ -264,7 +302,7 @@ class OneDim(OneDimMixin, Symbolic):
     def __init__(self, x, f, params, name):
         if not (len(x) == 1 & len(f) == 1):
             raise Exception(
-                f'System shape is {len(x)} by {len(f)} but it should be 1 by 1'
+                f"System shape is {len(x)} by {len(f)} but it should be 1 by 1"
             )
         super().__init__(x, f, params, name)
 
@@ -273,7 +311,7 @@ class TwoDimMixin(MultiVarMixin, Symbolic):
     def fixed_point_classify(self, params_values, initial_guess=[]):
         a = self._linear_analysis(params_values, initial_guess, reach=5)[1]
         if a is None:
-            return 'There is no fixed points to evaluate'
+            return "There is no fixed points to evaluate"
 
         traces = []
         dets = []
@@ -286,15 +324,17 @@ class TwoDimMixin(MultiVarMixin, Symbolic):
             if det == 0:
                 if trace < 0:
                     classification.append(
-                        '''Non Isolated Fixed-Points, Line of Lyapunov stable fixed points'''
+                        "Non Isolated Fixed-Points,"
+                        + "Line of Lyapunov stable fixed points"
                     )
                 elif trace == 0:
                     classification.append(
-                        '''Non Isolated Fixed-Points, Plane of fixed points'''
+                        "Non Isolated Fixed-Points," + "Plane of fixed points"
                     )
                 elif trace > 0:
                     classification.append(
-                        '''Non Isolated Fixed-Points, Line of unstable fixed points'''
+                        "Non Isolated Fixed-Points,"
+                        + "Line of unstable fixed points"
                     )
 
             elif det < 0:
@@ -329,7 +369,6 @@ class TwoDimMixin(MultiVarMixin, Symbolic):
                         elif trace < 0:
                             classification.append("Stable Degenerate Node")
 
-
         roots = self.fixed_points(params_values, initial_guess)
         eigen = self.eigenvalues(params_values, initial_guess)
         traces = np.array(traces)
@@ -361,8 +400,8 @@ class TwoDim(TwoDimMixin, Symbolic):
     def __init__(self, x, f, params, name):
         if not (len(x) == 2 & len(f) == 2):
             raise Exception(
-                f'System shape is {len(x)} by'+
-                f'{len(f)} but it should be 2 by 2'
+                f"System shape is {len(x)} by"
+                + f"{len(f)} but it should be 2 by 2"
             )
         super().__init__(x, f, params, name)
 
@@ -371,8 +410,8 @@ class MultiDim(MultiVarMixin, Symbolic):
     def __init__(self, x, f, params, name):
         if not (len(x) == 3 & len(f) == 3):
             raise Exception(
-                f'System shape is {len(x)} by'+
-                '{len(f)} but it should be 3 by 3'
+                f"System shape is {len(x)} by"
+                + f"{len(f)} but it should be 3 by 3"
             )
         super().__init__(x, f, params, name)
 
@@ -433,13 +472,9 @@ class Poincare(Trajectory):
 
     def _fit(self, a, plane, grade, axis):
         if not plane >= 1 and plane < 4:
-            raise Exception(
-                'Specified plane must be between 1 and 3'
-            )
+            raise Exception("Specified plane must be between 1 and 3")
         if not axis >= 1 and axis < 4:
-            raise Exception(
-            'Specified axis must be between 1 and 3'
-            )
+            raise Exception("Specified axis must be between 1 and 3")
 
         t = np.delete(self.t, [-1, -2])
 

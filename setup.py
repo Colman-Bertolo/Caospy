@@ -1,14 +1,12 @@
+from setuptools import setup
 
-
-from setuptools import setup 
-
-# Descripción del proyecto 
+# Descripción del proyecto
 with open("README.md") as fp:
     LONG_DESCRIPTION = fp.read()
 
-# Requerimientos 
+# Requerimientos
 
-REQUIREMENTS = ["numpy", "pandas", "scipy", "sympy", "matplotlib"] 
+REQUIREMENTS = ["numpy", "pandas", "scipy", "sympy", "matplotlib"]
 
 # =============================================================================
 # FUNCTIONS
@@ -23,9 +21,7 @@ setup(
     author="Juan Colman, Sebastián Bertolo",
     author_email="juancolmanot@gmail.com",
     url="https://github.com/Colman-Bertolo-DiSCSI2021/Caospy",
-    packages=[
-        "caospy",
-    ],
+    packages=["caospy"],
     install_requires=REQUIREMENTS,
     keywords=["caospy", "dynamic system", "chaos"],
     classifiers=[
@@ -38,6 +34,5 @@ setup(
         "Programming Language :: Python :: Implementation :: CPython",
         "Topic :: Scientific/Engineering",
     ],
-   # include_package_data=True,
+    # include_package_data=True,
 )
-
