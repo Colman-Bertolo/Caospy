@@ -2,15 +2,17 @@
 
 
 import caospy
-import pytest
+
 import pandas as pd
+
+import pytest
 
 
 # Test for odeint  numerical integration
 @pytest.fixture
 # Test function dy/dt = y- y^2 to check numerical integration.
 def fun():
-    def dy(y, t, par):
+    def dy(t, y, par):
         der = y - (y ** 2)
         return der
 
@@ -19,13 +21,13 @@ def fun():
 
 
 def test_odeint(fun):
-    y0 = 0.5
+    y0 = [0.5]
     t0 = 0.0
     tf = 10
-    par = 0
+    par = [0]
     n = 500
     t, y = fun.time_evolution(y0, par, t0, tf, n)
-    assert y[-1] == pytest.approx(1.000, rel=1e-3)
+    assert y[0, -1] == pytest.approx(1.000, rel=1e-3)
 
 
 # Test for check zeroos values
@@ -150,4 +152,28 @@ def test_center():
     assert list(l_center["$Type$"]) == ["Center"]
 
 
+# Non-isolated
+def test_nonisolated():
+    variables = ["x", "y"]
+    funciones = ["4*x-3*y", "8*x-6*y"]
+    p1 = []
+    s1 = caospy.TwoDim(variables, funciones, p1, "Non-isolated")
+    l_center = s1.fixed_point_classify(p1)
+    assert list(l_center["$Type$"]) == [
+        "Non Isolated Fixed-Points," + "Line of Lyapunov stable fixed points"
+    ]
+
+
 # Tests for Poincare Map
+# -------------------------------------------------------------------------
+# Tests raises errors
+# -------------------------------------------------------------------------
+# -------------------------------------------------------------------------
+# Test type function for numerical integration
+def test_raisefunction():
+    f = 4
+    with pytest.raises(Exception) as exc:
+        caospy.Functional(f, "check")
+    assert (
+        "The first argument must be a callable" + "got <class 'int'> instead."
+    ) == str(exc.value)

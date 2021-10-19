@@ -4,9 +4,12 @@
 import types
 
 import numpy as np
+
 import pandas as pd
-import sympy as sp
+
 from scipy.integrate import solve_ivp
+
+import sympy as sp
 from sympy.parsing.sympy_parser import parse_expr
 
 
@@ -31,23 +34,24 @@ class Functional:
         parameters,
         ti=0,
         tf=200,
+        N=400,
         rel_tol=1e-10,
         abs_tol=1e-12,
-        mx_step=0.004,
     ):
         if not tf > ti:
             raise Exception(
                 "Final integration time must be"
                 + "greater than initial integration time."
             )
+        t_ev = np.linspace(ti, tf, N)
         sol = solve_ivp(
             self.func,
             [ti, tf],
             x0,
             args=(parameters,),
+            t_eval=t_ev,
             rtol=rel_tol,
             atol=abs_tol,
-            max_step=mx_step,
         )
         return sol.t, sol.y
 
@@ -136,7 +140,7 @@ class Symbolic(Functional):
 
         dydt = sp.lambdify(([*self._variables], [*self._parameters]), function)
 
-        def fun(x_fun, t_fun, par_fun):
+        def fun(t_fun, x_fun, par_fun):
             return dydt(x_fun, par_fun)
 
         super().__init__(fun, self._name)
@@ -257,7 +261,7 @@ class MultiVarMixin(Symbolic):
         return self._linear_analysis(p, initial_guess, 2)[2]
 
     def eigenvectors(self, p, initial_guess=[]):
-        return self._linear_analysis(p, initial_guess, 3)[3]
+        return self._linear_analysis(p, initial_guess, 3)[2]
 
     def full_linearize(self, p, initial_guess=[]):
         return self._linear_analysis(p, initial_guess, 4)
