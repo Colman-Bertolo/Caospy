@@ -18,4 +18,7 @@ __version__ = "0.1.1"
 # IMPORTS
 # =============================================================================
 
-from .core import * # noqa
+from .core import *
+from .trajectories import *
+from .poincare import *
+from .predet_systems import *

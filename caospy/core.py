@@ -1,29 +1,38 @@
 # from matplotlib import pyplot as plt
 # from sympy import *
 
-import types
+
+# Necessary packages and libraries are imported
+
 
 import numpy as np
 import pandas as pd
 import sympy as sp
 from scipy.integrate import solve_ivp
 from sympy.parsing.sympy_parser import parse_expr
+from .trajectories import *
+from .poincare import *
 
+# ==============================================================================
+
+# Class Functional: this class can accept any system defined by its function and name. It is the higher class in the hierarchy of the core file.
 
 class Functional:
     def __init__(self, func, name):
-        if not isinstance(func, types.FunctionType):
-            raise Exception(
+        if not callable(func):
+            raise TypeError(
                 "The first argument must be a callable"
                 + f"got {type(func)} instead."
             )
         if not isinstance(name, str):
-            raise Exception(
+            raise TypeError(
                 "The second argument must be a string"
                 + f"got {type(name)} instead."
             )
         self.func = func
         self.name = name
+
+    # Method time_evolution: intergates numerically the function of the system
 
     def time_evolution(
         self,
@@ -31,15 +40,17 @@ class Functional:
         parameters,
         ti=0,
         tf=200,
+        n=2000,
         rel_tol=1e-10,
         abs_tol=1e-12,
         mx_step=0.004,
     ):
         if not tf > ti:
-            raise Exception(
+            raise ValueError(
                 "Final integration time must be"
                 + "greater than initial integration time."
             )
+        t = np.linspace(ti, tf, n)
         sol = solve_ivp(
             self.func,
             [ti, tf],
@@ -48,8 +59,14 @@ class Functional:
             rtol=rel_tol,
             atol=abs_tol,
             max_step=mx_step,
+            dense_output=True,
+            t_eval=t
         )
-        return sol.t, sol.y
+        x = sol.y
+        variables = [f'$x_{i}$' for i in range(len(x0))]
+        return Trajectory(t, x, variables)
+
+    # Method poincare: integrates numerically a trajectory, eliminating the transient phase, to then instanciate a Poincare type object.
 
     def poincare(
         self,
@@ -57,50 +74,56 @@ class Functional:
         parameters,
         t_desc=5000,
         t_calc=50,
+        n=2000,
         rel_tol=1e-10,
         abs_tol=1e-12,
         mx_step=0.01,
     ):
-        sol_1 = solve_ivp(
-            self.func,
-            [0, t_desc],
+        t1, x1 = self.time_evolution(
             x0,
-            args=(parameters,),
-            rtol=rel_tol,
-            atol=abs_tol,
-            max_step=mx_step,
-        )
-        x0_2 = [sol_1.y[i, -1] for i in range(np.shape(sol_1.y)[-1])]
-        sol_2 = solve_ivp(
-            self.func,
-            [0, t_calc],
+            parameters,
+            0,
+            t_desc,
+            n,
+            rel_tol,
+            abs_tol,
+            mx_step
+            )
+        x0_2 = x1[:, -1]
+        t2, x2 = self.time_evolution(
             x0_2,
-            args=(parameters,),
-            rtol=rel_tol,
-            atol=abs_tol,
-            max_step=mx_step,
-        )
+            parameters,
+            0,
+            t_calc,
+            n,
+            rel_tol,
+            abs_tol,
+            mx_step
+            )
         variables = list(self._variables.values())
-        return Poincare(sol_2.t, sol_2.y, variables)
+        return Poincare(t2, x2, variables)
 
+# ==========================================================================
+
+# Class Symbolic: it defines a system by its equations, parameters, variables and name, given as strings. It inherits from Functional class.
 
 class Symbolic(Functional):
     def __init__(self, x, f, params, name):
         if not isinstance(name, str):
-            raise Exception(
+            raise TypeError(
                 f"Name must be a string, got {type(name)} instead."
             )
         if not all(isinstance(i, list) for i in [x, f, params]):
-            raise Exception(
+            raise TypeError(
                 "The variables, functions and parameters"
                 + "should be lists, got"
                 + f"{(type(x), type(f), type(params))} instead."
             )
         for i in [x, f, params]:
             if not all(isinstance(j, str) for j in i):
-                raise Exception("All the elements must be strings.")
+                raise TypeError("All the elements must be strings.")
         if not len(x) == len(f):
-            raise Exception(
+            raise ValueError(
                 "System must have equal number of variables"
                 + f"and equations, insead has {len(x)} variables"
                 + f"and {len(f)} equations"
@@ -136,7 +159,7 @@ class Symbolic(Functional):
 
         dydt = sp.lambdify(([*self._variables], [*self._parameters]), function)
 
-        def fun(x_fun, t_fun, par_fun):
+        def fun(t_fun, x_fun, par_fun):
             return dydt(x_fun, par_fun)
 
         super().__init__(fun, self._name)
@@ -162,7 +185,7 @@ class Symbolic(Functional):
                     )
                 ]
             except TypeError:
-                raise Exception(
+                raise TypeError(
                     "Initial guess is not allowed,"
                     + "try with another set of values"
                 )
@@ -201,38 +224,24 @@ class Symbolic(Functional):
         variable_list = list(self._variables.values())
         replace_values = [list(root) for root in roots]
         replace = [list(zip(variable_list, i)) for i in replace_values]
-        a_matrices = []
-        for j in replace:
+        n_var = len(self._variables)
+        n_eq = len(self._equations)
+        n_roots = len(replace)
+        a_matrices = np.zeros((n_roots, n_eq, n_var), dtype=object)
+        for i, rep in enumerate(replace):
+            for j, row in enumerate(jacobian):
+                for k, derivative in enumerate(row):
+                    a_matrices[i, j, k] = derivative.subs(rep)
+
+        try:
+            a_matrices = a_matrices.astype('float64')
+        except TypeError:
             try:
-                a_matrices.append(
-                    np.array(
-                        list(map(np.vectorize(lambda i: i.subs(j)), jacobian))
-                    ).astype("float64")
-                )
+                a_matrices = a_matrices.astype('complex128')
             except TypeError:
-                try:
-                    a_matrices.append(
-                        np.array(
-                            list(
-                                map(
-                                    np.vectorize(lambda i: i.subs(j)), jacobian
-                                )
-                            )
-                        ).astype("complex128")
-                    )
-                except TypeError:
-                    a_matrices.append(
-                        np.array(
-                            list(
-                                map(
-                                    np.vectorize(lambda i: i.subs(j)), jacobian
-                                )
-                            ),
-                            dtype=object,
-                        )
-                    )
+                pass
+
         if reach == 5:
-            a_matrices = np.array(a_matrices)
             return [None, a_matrices, None, None]
 
         elif reach == 2:
@@ -241,16 +250,19 @@ class Symbolic(Functional):
 
         elif reach == 3:
             w, v = np.linalg.eig(a_matrices)
-            v = np.array([i.T for i in v])
-            return [None, None, v, None]
+            v = next((i.T for i in v))
+            return [None, None, None, v]
         else:
             w, v = np.linalg.eig(a_matrices)
-            v = np.array([i.T for i in v])
+            v = next((i.T for i in v))
             return [roots, a_matrices, w, v]
 
     def fixed_points(self, p, initial_guess=[]):
         return self._linear_analysis(p, initial_guess, 1)[0]
 
+# ==========================================================================
+
+# Class MultiVarMixin: this mixin takes the _linear_analysis method from Symbolic, and specifies it into three methods that are characteristic from multidimensional systems (eigenvalues, eigenvectors, full_linearize). It inherits from Symbolic.
 
 class MultiVarMixin(Symbolic):
     def eigenvalues(self, p, initial_guess=[]):
@@ -262,6 +274,9 @@ class MultiVarMixin(Symbolic):
     def full_linearize(self, p, initial_guess=[]):
         return self._linear_analysis(p, initial_guess, 4)
 
+# ==========================================================================
+
+# Class OneDimMixin: this mixin incorporates two methods specific to onedimensional systems. It inherits from Symbolic.
 
 class OneDimMixin(Symbolic):
     def stability(self, parameters):
@@ -285,9 +300,9 @@ class OneDimMixin(Symbolic):
         stable = []
         for slope in slopes:
             if slope == 0:
-                raise Exception(
-                    """Linear stability is undefined.
-                    Slope in fixed point is 0."""
+                raise LinearityError(
+                    "Linear stability is undefined."
+                    " Slope in fixed point is 0."
                 )
 
             stable.append(True if slope < 0 else False)
@@ -297,6 +312,9 @@ class OneDimMixin(Symbolic):
         )
         return data
 
+# ==========================================================================
+
+# Class OneDim: takes a onedimensional system and gives it the specific functionalities that characterize them. It inherits from OneDimMixin and Symbolic.
 
 class OneDim(OneDimMixin, Symbolic):
     def __init__(self, x, f, params, name):
@@ -306,19 +324,28 @@ class OneDim(OneDimMixin, Symbolic):
             )
         super().__init__(x, f, params, name)
 
+# ==========================================================================
+
+# Class TwoDimMixin: incorporates the classification of fixed points for two dimensional systems. It inherits from MultiVarMixin and Symbolic.
 
 class TwoDimMixin(MultiVarMixin, Symbolic):
     def fixed_point_classify(self, params_values, initial_guess=[]):
         a = self._linear_analysis(params_values, initial_guess, reach=5)[1]
+        roots = self.fixed_points(params_values, initial_guess)
         if a is None:
             return "There is no fixed points to evaluate"
 
         traces = []
         dets = []
         classification = []
-        for j in a:
-            trace = j[0][0] + j[1][1]
-            det = j[0][0] * j[1][1] - j[1][0] * j[0][1]
+        for i, r in enumerate(roots):
+            if len(r) == 1:
+                trace = a[0][0] + a[1][1]
+                det = a[0][0] * a[1][1] - a[1][0] * a[0][1]
+            else:
+                trace = a[i][0][0] + a[i][1][1]
+                det = a[i][0][0] * a[i][1][1] - a[i][1][0] * a[i][0][1]
+
             traces.append(np.around(complex(trace), 2))
             dets.append(np.around(complex(det), 2))
             if det == 0:
@@ -357,7 +384,7 @@ class TwoDimMixin(MultiVarMixin, Symbolic):
                         classification.append("Stable Spiral")
 
                 elif trace ** 2 - 4 * det == 0:
-                    if j[0][1] == 0 and j[1][0] == 0:
+                    if a[i][0][1] == 0 and a[i][1][0] == 0:
                         if trace > 0:
                             classification.append("Unstable Star Node")
                         elif trace < 0:
@@ -395,26 +422,35 @@ class TwoDimMixin(MultiVarMixin, Symbolic):
         data = pd.DataFrame(data_array, columns=cols)
         return data
 
+# ==========================================================================
+
+# Class TwoDim: takes a twodimensional system and gives it the specific functionalities that characterize them. It inherits from TwoDimMixin and Symbolic.
 
 class TwoDim(TwoDimMixin, Symbolic):
     def __init__(self, x, f, params, name):
         if not (len(x) == 2 & len(f) == 2):
-            raise Exception(
+            raise ValueError(
                 f"System shape is {len(x)} by"
                 + f"{len(f)} but it should be 2 by 2"
             )
         super().__init__(x, f, params, name)
 
+# ==========================================================================
+
+# Class MultiDim: takes a multidimensional system and gives it the specific functionalities that characterize them. It inherits from MultiVarMixin and Symbolic.
 
 class MultiDim(MultiVarMixin, Symbolic):
     def __init__(self, x, f, params, name):
         if not (len(x) == 3 & len(f) == 3):
-            raise Exception(
+            raise ValueError(
                 f"System shape is {len(x)} by"
                 + f"{len(f)} but it should be 3 by 3"
             )
         super().__init__(x, f, params, name)
 
+# ==========================================================================
+
+# Class AutoSymbolic: it takes predetermined classes that define particular systems and instanciates as Symbolic objects. It inherits from Symbolic.
 
 class AutoSymbolic(Symbolic):
     def __init__(self):
@@ -426,103 +462,5 @@ class AutoSymbolic(Symbolic):
             name=cls._name,
         )
 
-
-class Lorenz(MultiVarMixin, AutoSymbolic):
-    _name = "Lorenz"
-    _variables = ["x", "y", "z"]
-    _parameters = ["sigma", "rho", "beta"]
-    _functions = ["sigma * (y - x)", "x * (rho - z) - y", "x * y - beta * z"]
-
-
-class Duffing(AutoSymbolic):
-    _name = "Duffing"
-    _variables = ["x", "y", "t"]
-    _parameters = ["alpha", "beta", "delta", "gamma", "omega"]
-    _functions = [
-        "y",
-        "-delta * y - alpha * x - beta * x**3 + gamma * cos(omega * t)",
-    ]
-
-
-class Logistic(OneDimMixin, AutoSymbolic):
-    _name = "Logistic"
-    _variables = ["N"]
-    _parameters = ["r", "k"]
-    _functions = ["r * N * (1 - N / k)"]
-
-
-class Trajectory:
-    def __init__(self, t, x, variables):
-        self.x = x  # Devuelve matriz de trayectorias x
-        self.t = t  # Devuelve vector de tiempo t
-        self.n_var = np.shape(x)[1]
-        self.cols = ["t"] + [f"{v}" for v in variables]
-
-    def to_table(self):
-        col_names = self.cols
-        pd.set_option("display.precision", 2)
-        merge_array = np.insert(self.x, 0, self.t, axis=1)
-        trajectory_table = pd.DataFrame(merge_array, columns=col_names)
-        return trajectory_table
-
-
-class Poincare(Trajectory):
-    def __init__(self, t, x, variables):
-        super().__init__(t, x, variables)
-
-    def _fit(self, a, plane, grade, axis):
-        if not plane >= 1 and plane < 4:
-            raise Exception("Specified plane must be between 1 and 3")
-        if not axis >= 1 and axis < 4:
-            raise Exception("Specified axis must be between 1 and 3")
-
-        t = np.delete(self.t, [-1, -2])
-
-        x1a = np.delete(np.roll(self.x[:, axis - 1], 2), [0, 1])
-        x1b = np.delete(np.roll(self.x[:, axis - 1], 1), [0, 1])
-        x1c = np.delete(self.x[:, axis - 1], [0, 1])
-
-        x1_slices = np.vstack((x1a, x1b, x1c))
-
-        x2a = np.delete(np.roll(self.x[:, plane - 1], 2), [0, 1])
-        x2b = np.delete(np.roll(self.x[:, plane - 1], 1), [0, 1])
-        x2c = np.delete(self.x[:, plane - 1], [0, 1])
-
-        x2_slices = np.vstack((x2a, x2b, x2c))
-
-        x1 = x1_slices[:, (x1_slices[0] < a) & (x1_slices[1] > a)]
-        x2 = x2_slices[:, (x1_slices[0] < a) & (x1_slices[1] > a)]
-        t_map = t[(x1_slices[0] < a) & (x1_slices[1] > a)]
-
-        x12 = np.vstack((x2, x1))
-
-        def poly(v, grade_poly):
-            return np.polyfit(v[3:6], v[0:3], grade_poly)
-
-        x12_coeff = np.apply_along_axis(poly, 0, x12, grade)
-
-        def apply_poly(p, a_value):
-            return (
-                p[0] * a_value ** 2 + p[1] * a_value + p[2]
-                if len(p) == 3
-                else p[0] * a_value + p[1]
-            )
-
-        x2_fit = np.apply_along_axis(apply_poly, 0, x12_coeff, a)
-
-        x21 = np.delete(x2_fit, -1)
-        x22 = np.delete(x2_fit, 0)
-
-        xmap = np.array([[x21], [x22]])
-
-        return t_map, xmap, x2
-
-
-class Map:
-    def __init__(self, t, n, i, plane, axis):
-        self.n0 = n[0]
-        self.n1 = n[1]
-        self.iterations = i
-        self.t_iter = t
-        self.plane = plane
-        self.axis = axis
+class LinearityError(ValueError):
+    pass
