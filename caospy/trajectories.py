@@ -1,8 +1,10 @@
+# import sympy as sp
+
 # Systems trajectories treatment
 
 import numpy as np
 import pandas as pd
-import sympy as sp
+
 
 class Trajectory:
     def __init__(self, t, x, variables):
@@ -17,6 +19,3 @@ class Trajectory:
         merge_array = np.insert(self.x, 0, self.t, axis=1)
         trajectory_table = pd.DataFrame(merge_array, columns=col_names)
         return trajectory_table
-
-
-

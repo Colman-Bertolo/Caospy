@@ -1,12 +1,14 @@
+# import sympy as sp
+# import pandas as pd
+
 # Poincaré methods implementations
 
 import numpy as np
-import pandas as pd
-import sympy as sp
 
-from .trajectories import *
+from . import trajectories
 
-class Poincare(Trajectory):
+
+class Poincare(trajectories.Trajectory):
     def __init__(self, t, x, variables):
         super().__init__(t, x, variables)
 

@@ -2,77 +2,86 @@
 
 
 import caospy
-import pytest
-import pandas as pd
 import numpy as np
+import pandas as pd
+import pytest
 import sympy as sp
 
 
 # Test for Functional Class init - func type:
 def test_callable_type_function():
     f = 1
-    with pytest.raises(TypeError) as exc:
+    with pytest.raises(TypeError):
         caospy.Functional(f, "check")
+
 
 # Test for Functional Class init - name type:
 def test_str_type_name():
     def f():
         return 1
-    with pytest.raises(TypeError) as exc:
+
+    with pytest.raises(TypeError):
         caospy.Functional(f, 3)
+
 
 # Test for integration interval, tf > ti
 @pytest.fixture
 # Test system, with ti > tf
 def time_interval_fun():
     def derivative(t, y, par):
-        der = y * par + y**2
+        der = y * par + y ** 2
         return der
 
     s = caospy.Functional(derivative, "Test time interval")
     return s
+
 
 def test_time_interval(time_interval_fun):
     y0 = [1]
     par = [2]
     t0 = 1.0
     tf = 0.0
-    with pytest.raises(ValueError) as exc:
-        states = time_interval_fun.time_evolution(y0, par, t0, tf)
+    with pytest.raises(ValueError):
+        time_interval_fun.time_evolution(y0, par, t0, tf)
+
 
 # Tests for Symbolic class init
 
 # Test for name type
 def test_symbolic_name():
-    v = ['x', 'y', 'z']
-    f = ['x**2 + c * y', 'z - y * a', 'x * b / z']
-    p = ['a', 'b', 'c']
-    with pytest.raises(TypeError) as exc:
+    v = ["x", "y", "z"]
+    f = ["x**2 + c * y", "z - y * a", "x * b / z"]
+    p = ["a", "b", "c"]
+    with pytest.raises(TypeError):
         caospy.Symbolic(v, f, p, 2)
+
 
 # Test for list type (parameters, variables, functions)
 def test_list_type_vfp():
-    f = ['x**2 + c * y', 'z - y * a', 'x * b / z']
-    p = ['a', 'b', 'c']
-    name = 'testing_sys'
-    with pytest.raises(TypeError) as exc:
+    f = ["x**2 + c * y", "z - y * a", "x * b / z"]
+    p = ["a", "b", "c"]
+    name = "testing_sys"
+    with pytest.raises(TypeError):
         caospy.Symbolic(2, f, p, name)
+
 
 # Test for str type in parameters, variables, functions
 def test_str_type_vfp():
-    v = ['x', 'y', 'z']
-    f = ['x**2 + c * y', 'z - y * a', 'x * b / z']
-    name = 'testing_sys'
-    with pytest.raises(TypeError) as exc:
+    v = ["x", "y", "z"]
+    f = ["x**2 + c * y", "z - y * a", "x * b / z"]
+    name = "testing_sys"
+    with pytest.raises(TypeError):
         caospy.Symbolic(v, f, [1, 2], name)
+
 
 # Test for shape of the system:
 def test_system_shape():
-    f = ['x**2 + c * y', 'z - y * a', 'x * b / z']
-    p = ['a', 'b', 'c']
-    name = 'testing_sys'
-    with pytest.raises(ValueError) as exc:
-        caospy.Symbolic(['v'], f, p, name)
+    f = ["x**2 + c * y", "z - y * a", "x * b / z"]
+    p = ["a", "b", "c"]
+    name = "testing_sys"
+    with pytest.raises(ValueError):
+        caospy.Symbolic(["v"], f, p, name)
+
 
 # Test for odeint  numerical integration
 @pytest.fixture
@@ -85,123 +94,127 @@ def time_evolution_fun():
     f = caospy.Functional(dy, "Test Function")
     return f
 
+
 def test_time_evolution(time_evolution_fun):
     y0 = [0.5]
     t0 = 0.0
     tf = 10
     par = 0
     n = 1000
-    states = time_evolution_fun.time_evolution(y0, par, t0, tf)
+    states = time_evolution_fun.time_evolution(y0, par, t0, tf, n)
     y = states.x
     assert y[0][-1] == pytest.approx(1.000, rel=1e-3)
 
 
 # Test for check zeros values
 
+
 @pytest.fixture
 def system0():
-    var0 = ['x', 'y']
-    func0 = ['4 * x - 3 * x * y', '7 * x**2 - 6 * y']
+    var0 = ["x", "y"]
+    func0 = ["4 * x - 3 * x * y", "7 * x**2 - 6 * y"]
     par0 = []
-    Test0 = caospy.TwoDim(var0, func0, par0,'A0')
-    return Test0
+    test0 = caospy.TwoDim(var0, func0, par0, "A0")
+    return test0
+
 
 def test_roots_0(system0):
     p = []
     j = system0.fixed_points(p)
     as1 = np.array(
-        [[0., 0.],
-        [-1.06904497, 1.33333333],
-        [1.06904497, 1.3333333]]
-        )
+        [[0.0, 0.0], [-1.06904497, 1.33333333], [1.06904497, 1.3333333]]
+    )
     assert np.all(j - as1 < 1e-5)
+
 
 @pytest.fixture
 def system1():
-    var1 = ['x', 'y']
-    func1 = ['4 * x - 3 * y', '8 * x - 6 * y']
+    var1 = ["x", "y"]
+    func1 = ["4 * x - 3 * y", "8 * x - 6 * y"]
     par1 = []
-    Test1 = caospy.TwoDim(var1, func1, par1,'A1')
-    return Test1
+    test1 = caospy.TwoDim(var1, func1, par1, "A1")
+    return test1
+
 
 def test_roots_1(system1):
     p = []
     j = system1.fixed_points(p)
-    y = sp.symbols('y')
-    as1 = np.array(
-        [[3 * y / 4, y]],
-        dtype=object
-        )
+    y = sp.symbols("y")
+    as1 = np.array([[3 * y / 4, y]], dtype=object)
     assert np.all(j - as1 < 1e-5)
+
 
 @pytest.fixture
 def system2():
-    var2 = ['x', 'y']
-    func2 = ['exp(x)', '8 * x - 6 * y']
+    var2 = ["x", "y"]
+    func2 = ["exp(x)", "8 * x - 6 * y"]
     par2 = []
-    Test2 = caospy.TwoDim(var2, func2, par2,'A2')
-    return Test2
+    test2 = caospy.TwoDim(var2, func2, par2, "A2")
+    return test2
+
 
 def test_roots_2(system2):
     p = []
     j = system2.fixed_points(p)
     assert j is None
 
+
 @pytest.fixture
 def system3():
-    var3 = ['x', 'y']
-    func3 = ['cos(x) - y', 'x**2 - 6 * y']
+    var3 = ["x", "y"]
+    func3 = ["cos(x) - y", "x**2 - 6 * y"]
     par3 = []
-    Test3 = caospy.TwoDim(var3, func3, par3,'A3')
-    return Test3
+    test3 = caospy.TwoDim(var3, func3, par3, "A3")
+    return test3
+
 
 def test_roots_3(system3):
     p = []
     initial_guess = [1, 1]
     j = system3.fixed_points(p, initial_guess)
-    as1 = np.array(
-        [[1.28983525, 0.27727916]]
-        )
+    as1 = np.array([[1.28983525, 0.27727916]])
     assert np.all(j - as1 < 1e-5)
+
 
 @pytest.fixture
 def system4():
-    var4 = ['x']
-    func4 = ['cos(x) - x']
+    var4 = ["x"]
+    func4 = ["cos(x) - x"]
     par4 = []
-    Test4 = caospy.OneDim(var4, func4, par4,'A4')
-    return Test4
+    test4 = caospy.OneDim(var4, func4, par4, "A4")
+    return test4
+
 
 def test_roots_4(system4):
     p = []
     j = system4.fixed_points(p)
-    as1 = np.array(
-        [[0.73908513]]
-        )
+    as1 = np.array([[0.73908513]])
     assert np.all(j - as1 < 1e-5)
+
 
 @pytest.fixture
 def system5():
-    var5 = ['Q']
-    func5 = ['v0 / R - Q / (R * C)']
-    par5 = ['v0', 'R', 'C']
-    Test5 = caospy.OneDim(var5, func5, par5,'A5')
-    return Test5
+    var5 = ["Q"]
+    func5 = ["v0 / R - Q / (R * C)"]
+    par5 = ["v0", "R", "C"]
+    test5 = caospy.OneDim(var5, func5, par5, "A5")
+    return test5
+
 
 def test_roots_5(system5):
     p = [20, 10, 0.02]
     j = system5.fixed_points(p)
-    as1 = np.array(
-        [[0.4]]
-        )
+    as1 = np.array([[0.4]])
     assert np.all(j - as1 < 1e-5)
+
 
 @pytest.fixture
 def lorenz():
     derivate = caospy.Lorenz()
     return derivate
 
-def test_roots_Lorenz(lorenz):
+
+def test_roots_lorenz(lorenz):
     sigma = 10
     rho = 28
     beta = 8 / 3
@@ -214,12 +227,14 @@ def test_roots_Lorenz(lorenz):
     assert list(j[1]) in (as1, as2, as3)
     assert list(j[2]) in (as1, as2, as3)
 
+
 @pytest.fixture
 def logistic():
     derivate = caospy.Logistic()
     return derivate
 
-def test_roots_Logistic(logistic):
+
+def test_roots_logistic(logistic):
     r = 2
     k = 4
     p = [r, k]
@@ -229,6 +244,7 @@ def test_roots_Logistic(logistic):
 
 
 # Tetst for check eigenvalues and eigenvectors
+
 
 @pytest.fixture
 def funtwodim():
@@ -272,19 +288,20 @@ def test_onedimdf():
     l1 = s1.stability(p1)
     pd.testing.assert_frame_equal(l1, df)
 
+
 # Test for OneDim
 @pytest.fixture
 def zero_slope_syst():
-    v = ['x']
-    func = ['x**2 + 2 * x + 1']
+    v = ["x"]
+    func = ["x**2 + 2 * x + 1"]
     par = []
-    s = caospy.OneDim(v, func, par, 'Linear Stability')
+    s = caospy.OneDim(v, func, par, "Linear Stability")
     return s
 
 
 def test_onedim_zero_slope(zero_slope_syst):
     p = []
-    with pytest.raises(caospy.LinearityError) as exc:
+    with pytest.raises(caospy.LinearityError):
         zero_slope_syst.stability(p)
 
 
@@ -345,3 +362,20 @@ def test_center():
     assert list(l_center["$Type$"]) == ["Center"]
 
 
+# Non-isolated
+def test_nonisolated():
+    variables = ["x", "y"]
+    funciones = ["4*x-3*y", "8*x-6*y"]
+    p1 = []
+    s1 = caospy.TwoDim(variables, funciones, p1, "Non-isolated")
+    l_center = s1.fixed_point_classify(p1)
+    assert list(l_center["$Type$"]) == [
+        "Non Isolated Fixed-Points," + "Line of Lyapunov stable fixed points"
+    ]
+
+
+# Tests for Poincare Map
+# -------------------------------------------------------------------------
+# Tests raises errors
+# -------------------------------------------------------------------------
+# -------------------------------------------------------------------------

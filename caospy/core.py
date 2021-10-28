@@ -10,12 +10,14 @@ import pandas as pd
 import sympy as sp
 from scipy.integrate import solve_ivp
 from sympy.parsing.sympy_parser import parse_expr
-from .trajectories import *
-from .poincare import *
+
+from . import poincare, trajectories
 
 # ==============================================================================
 
-# Class Functional: this class can accept any system defined by its function and name. It is the higher class in the hierarchy of the core file.
+# Class Functional: this class can accept any system defined by its function
+# and name. It is the higher class in the hierarchy of the core file.
+
 
 class Functional:
     def __init__(self, func, name):
@@ -50,23 +52,24 @@ class Functional:
                 "Final integration time must be"
                 + "greater than initial integration time."
             )
-        t = np.linspace(ti, tf, n)
+        t_ev = np.linspace(ti, tf, n)
         sol = solve_ivp(
             self.func,
             [ti, tf],
             x0,
             args=(parameters,),
+            t_eval=t_ev,
             rtol=rel_tol,
             atol=abs_tol,
             max_step=mx_step,
             dense_output=True,
-            t_eval=t
         )
         x = sol.y
-        variables = [f'$x_{i}$' for i in range(len(x0))]
-        return Trajectory(t, x, variables)
+        variables = [f"$x_{i}$" for i in range(len(x0))]
+        return trajectories.Trajectory(t_ev, x, variables)
 
-    # Method poincare: integrates numerically a trajectory, eliminating the transient phase, to then instanciate a Poincare type object.
+    # Method poincare: integrates numerically a trajectory, eliminating the
+    # transient phase, to then instanciate a Poincare type object.
 
     def poincare(
         self,
@@ -80,32 +83,21 @@ class Functional:
         mx_step=0.01,
     ):
         t1, x1 = self.time_evolution(
-            x0,
-            parameters,
-            0,
-            t_desc,
-            n,
-            rel_tol,
-            abs_tol,
-            mx_step
-            )
+            x0, parameters, 0, t_desc, n, rel_tol, abs_tol, mx_step
+        )
         x0_2 = x1[:, -1]
         t2, x2 = self.time_evolution(
-            x0_2,
-            parameters,
-            0,
-            t_calc,
-            n,
-            rel_tol,
-            abs_tol,
-            mx_step
-            )
+            x0_2, parameters, 0, t_calc, n, rel_tol, abs_tol, mx_step
+        )
         variables = list(self._variables.values())
-        return Poincare(t2, x2, variables)
+        return poincare.Poincare(t2, x2, variables)
+
 
 # ==========================================================================
 
-# Class Symbolic: it defines a system by its equations, parameters, variables and name, given as strings. It inherits from Functional class.
+# Class Symbolic: it defines a system by its equations, parameters, variables
+# and name, given as strings. It inherits from Functional class.
+
 
 class Symbolic(Functional):
     def __init__(self, x, f, params, name):
@@ -234,10 +226,10 @@ class Symbolic(Functional):
                     a_matrices[i, j, k] = derivative.subs(rep)
 
         try:
-            a_matrices = a_matrices.astype('float64')
+            a_matrices = a_matrices.astype("float64")
         except TypeError:
             try:
-                a_matrices = a_matrices.astype('complex128')
+                a_matrices = a_matrices.astype("complex128")
             except TypeError:
                 pass
 
@@ -260,9 +252,14 @@ class Symbolic(Functional):
     def fixed_points(self, p, initial_guess=[]):
         return self._linear_analysis(p, initial_guess, 1)[0]
 
+
 # ==========================================================================
 
-# Class MultiVarMixin: this mixin takes the _linear_analysis method from Symbolic, and specifies it into three methods that are characteristic from multidimensional systems (eigenvalues, eigenvectors, full_linearize). It inherits from Symbolic.
+# Class MultiVarMixin: this mixin takes the _linear_analysis method from
+# Symbolic, and specifies it into three methods that are characteristic from
+# multidimensional systems (eigenvalues, eigenvectors, full_linearize). It
+# inherits from Symbolic.
+
 
 class MultiVarMixin(Symbolic):
     def eigenvalues(self, p, initial_guess=[]):
@@ -274,9 +271,12 @@ class MultiVarMixin(Symbolic):
     def full_linearize(self, p, initial_guess=[]):
         return self._linear_analysis(p, initial_guess, 4)
 
+
 # ==========================================================================
 
-# Class OneDimMixin: this mixin incorporates two methods specific to onedimensional systems. It inherits from Symbolic.
+# Class OneDimMixin: this mixin incorporates two methods specific to
+# onedimensional systems. It inherits from Symbolic.
+
 
 class OneDimMixin(Symbolic):
     def stability(self, parameters):
@@ -312,9 +312,13 @@ class OneDimMixin(Symbolic):
         )
         return data
 
+
 # ==========================================================================
 
-# Class OneDim: takes a onedimensional system and gives it the specific functionalities that characterize them. It inherits from OneDimMixin and Symbolic.
+# Class OneDim: takes a onedimensional system and gives it the specific
+# functionalities that characterize them. It inherits from OneDimMixin and
+# Symbolic.
+
 
 class OneDim(OneDimMixin, Symbolic):
     def __init__(self, x, f, params, name):
@@ -324,9 +328,12 @@ class OneDim(OneDimMixin, Symbolic):
             )
         super().__init__(x, f, params, name)
 
+
 # ==========================================================================
 
-# Class TwoDimMixin: incorporates the classification of fixed points for two dimensional systems. It inherits from MultiVarMixin and Symbolic.
+# Class TwoDimMixin: incorporates the classification of fixed points for two
+# dimensional systems. It inherits from MultiVarMixin and Symbolic.
+
 
 class TwoDimMixin(MultiVarMixin, Symbolic):
     def fixed_point_classify(self, params_values, initial_guess=[]):
@@ -422,9 +429,13 @@ class TwoDimMixin(MultiVarMixin, Symbolic):
         data = pd.DataFrame(data_array, columns=cols)
         return data
 
+
 # ==========================================================================
 
-# Class TwoDim: takes a twodimensional system and gives it the specific functionalities that characterize them. It inherits from TwoDimMixin and Symbolic.
+# Class TwoDim: takes a twodimensional system and gives it the specific
+# functionalities that characterize them. It inherits from TwoDimMixin and
+# Symbolic.
+
 
 class TwoDim(TwoDimMixin, Symbolic):
     def __init__(self, x, f, params, name):
@@ -435,9 +446,13 @@ class TwoDim(TwoDimMixin, Symbolic):
             )
         super().__init__(x, f, params, name)
 
+
 # ==========================================================================
 
-# Class MultiDim: takes a multidimensional system and gives it the specific functionalities that characterize them. It inherits from MultiVarMixin and Symbolic.
+# Class MultiDim: takes a multidimensional system and gives it the specific
+# functionalities that characterize them. It inherits from MultiVarMixin and
+# Symbolic.
+
 
 class MultiDim(MultiVarMixin, Symbolic):
     def __init__(self, x, f, params, name):
@@ -448,9 +463,12 @@ class MultiDim(MultiVarMixin, Symbolic):
             )
         super().__init__(x, f, params, name)
 
+
 # ==========================================================================
 
-# Class AutoSymbolic: it takes predetermined classes that define particular systems and instanciates as Symbolic objects. It inherits from Symbolic.
+# Class AutoSymbolic: it takes predetermined classes that define particular
+# systems and instanciates as Symbolic objects. It inherits from Symbolic.
+
 
 class AutoSymbolic(Symbolic):
     def __init__(self):
@@ -461,6 +479,7 @@ class AutoSymbolic(Symbolic):
             params=cls._parameters,
             name=cls._name,
         )
+
 
 class LinearityError(ValueError):
     pass
