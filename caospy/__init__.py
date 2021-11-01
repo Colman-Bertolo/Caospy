@@ -4,7 +4,8 @@
 
 """
 Caospy.
-Análisis de sistemas dinámicos.
+
+Análisis de estabilidad en sistemas dinámicos.
 """
 
 # =============================================================================
