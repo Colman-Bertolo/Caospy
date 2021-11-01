@@ -25,17 +25,6 @@ def test_str_type_name():
 
 
 # Test for integration interval, tf > ti
-@pytest.fixture
-# Test system, with ti > tf
-def time_interval_fun():
-    def derivative(t, y, par):
-        der = y * par + y ** 2
-        return der
-
-    s = caospy.Functional(derivative, "Test time interval")
-    return s
-
-
 def test_time_interval(time_interval_fun):
     y0 = [1]
     par = [2]
@@ -84,15 +73,6 @@ def test_system_shape():
 
 
 # Test for odeint  numerical integration
-@pytest.fixture
-# Test function dy/dt = y- y^2 to check numerical integration.
-def time_evolution_fun():
-    def dy(t, y, par):
-        der = y - (y ** 2)
-        return der
-
-    f = caospy.Functional(dy, "Test Function")
-    return f
 
 
 def test_time_evolution(time_evolution_fun):
@@ -109,15 +89,6 @@ def test_time_evolution(time_evolution_fun):
 # Test for check zeros values
 
 
-@pytest.fixture
-def system0():
-    var0 = ["x", "y"]
-    func0 = ["4 * x - 3 * x * y", "7 * x**2 - 6 * y"]
-    par0 = []
-    test0 = caospy.TwoDim(var0, func0, par0, "A0")
-    return test0
-
-
 def test_roots_0(system0):
     p = []
     j = system0.fixed_points(p)
@@ -125,15 +96,6 @@ def test_roots_0(system0):
         [[0.0, 0.0], [-1.06904497, 1.33333333], [1.06904497, 1.3333333]]
     )
     assert np.all(j - as1 < 1e-5)
-
-
-@pytest.fixture
-def system1():
-    var1 = ["x", "y"]
-    func1 = ["4 * x - 3 * y", "8 * x - 6 * y"]
-    par1 = []
-    test1 = caospy.TwoDim(var1, func1, par1, "A1")
-    return test1
 
 
 def test_roots_1(system1):
@@ -144,28 +106,10 @@ def test_roots_1(system1):
     assert np.all(j - as1 < 1e-5)
 
 
-@pytest.fixture
-def system2():
-    var2 = ["x", "y"]
-    func2 = ["exp(x)", "8 * x - 6 * y"]
-    par2 = []
-    test2 = caospy.TwoDim(var2, func2, par2, "A2")
-    return test2
-
-
 def test_roots_2(system2):
     p = []
     j = system2.fixed_points(p)
     assert j is None
-
-
-@pytest.fixture
-def system3():
-    var3 = ["x", "y"]
-    func3 = ["cos(x) - y", "x**2 - 6 * y"]
-    par3 = []
-    test3 = caospy.TwoDim(var3, func3, par3, "A3")
-    return test3
 
 
 def test_roots_3(system3):
@@ -176,15 +120,6 @@ def test_roots_3(system3):
     assert np.all(j - as1 < 1e-5)
 
 
-@pytest.fixture
-def system4():
-    var4 = ["x"]
-    func4 = ["cos(x) - x"]
-    par4 = []
-    test4 = caospy.OneDim(var4, func4, par4, "A4")
-    return test4
-
-
 def test_roots_4(system4):
     p = []
     j = system4.fixed_points(p)
@@ -192,26 +127,11 @@ def test_roots_4(system4):
     assert np.all(j - as1 < 1e-5)
 
 
-@pytest.fixture
-def system5():
-    var5 = ["Q"]
-    func5 = ["v0 / R - Q / (R * C)"]
-    par5 = ["v0", "R", "C"]
-    test5 = caospy.OneDim(var5, func5, par5, "A5")
-    return test5
-
-
 def test_roots_5(system5):
     p = [20, 10, 0.02]
     j = system5.fixed_points(p)
     as1 = np.array([[0.4]])
     assert np.all(j - as1 < 1e-5)
-
-
-@pytest.fixture
-def lorenz():
-    derivate = caospy.Lorenz()
-    return derivate
 
 
 def test_roots_lorenz(lorenz):
@@ -228,12 +148,6 @@ def test_roots_lorenz(lorenz):
     assert list(j[2]) in (as1, as2, as3)
 
 
-@pytest.fixture
-def logistic():
-    derivate = caospy.Logistic()
-    return derivate
-
-
 def test_roots_logistic(logistic):
     r = 2
     k = 4
@@ -244,15 +158,6 @@ def test_roots_logistic(logistic):
 
 
 # Tetst for check eigenvalues and eigenvectors
-
-
-@pytest.fixture
-def funtwodim():
-    variables = ["x", "y"]
-    param = ["a", "b"]
-    functions = ["x + y", "a * x - b * y"]
-    derivate = caospy.TwoDim(variables, functions, param, "Test 2D")
-    return derivate
 
 
 def test_eigenvalue(funtwodim):
@@ -290,13 +195,6 @@ def test_onedimdf():
 
 
 # Test for OneDim
-@pytest.fixture
-def zero_slope_syst():
-    v = ["x"]
-    func = ["x**2 + 2 * x + 1"]
-    par = []
-    s = caospy.OneDim(v, func, par, "Linear Stability")
-    return s
 
 
 def test_onedim_zero_slope(zero_slope_syst):
