@@ -1,18 +1,11 @@
+# File with pytest.fixtures
+
 import caospy
+
 import pytest
 
 
-@pytest.fixture
-# Test function dy/dt = y- y^2 to check numerical integration.
-def time_evolution_fun():
-    def dy(t, y, par):
-        der = y - (y ** 2)
-        return der
-
-    f = caospy.Functional(dy, "Test Function")
-    return f
-
-
+# Test for integration interval, tf > ti
 @pytest.fixture
 # Test system, with ti > tf
 def time_interval_fun():
@@ -24,6 +17,19 @@ def time_interval_fun():
     return s
 
 
+# Test for odeint  numerical integration
+@pytest.fixture
+# Test function dy/dt = y- y^2 to check numerical integration.
+def time_evolution_fun():
+    def dy(t, y, par):
+        der = y - (y ** 2)
+        return der
+
+    f = caospy.Functional(dy, "Test Function")
+    return f
+
+
+# Test for check zeros values
 @pytest.fixture
 def system0():
     var0 = ["x", "y"]
@@ -33,6 +39,7 @@ def system0():
     return test0
 
 
+# TEst for check roots
 @pytest.fixture
 def system1():
     var1 = ["x", "y"]
@@ -42,6 +49,7 @@ def system1():
     return test1
 
 
+# Tests forch check roots------------------------------
 @pytest.fixture
 def system2():
     var2 = ["x", "y"]
@@ -78,18 +86,21 @@ def system5():
     return test5
 
 
+# Test for chech Lorenz roots
 @pytest.fixture
 def lorenz():
     derivate = caospy.Lorenz()
     return derivate
 
 
+# Test for chech Logistic roots
 @pytest.fixture
 def logistic():
     derivate = caospy.Logistic()
     return derivate
 
 
+# Tetst for check eigenvalues and eigenvectors
 @pytest.fixture
 def funtwodim():
     variables = ["x", "y"]
@@ -99,6 +110,17 @@ def funtwodim():
     return derivate
 
 
+# Test for chech full matrix wit root, eigenvectors-values, derivate.
+@pytest.fixture
+def reachfull():
+    variables = ["x"]
+    param = ["a"]
+    functions = ["a * x"]
+    matrices = caospy.MultiVarMixin(variables, functions, param, "Test 2D")
+    return matrices
+
+
+# Tetst for check OneDim dataframe
 @pytest.fixture
 def zero_slope_syst():
     v = ["x"]

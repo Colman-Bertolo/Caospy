@@ -15,7 +15,9 @@ from . import trajectories
 class Poincare(trajectories.Trajectory):
     """Implementation for Poincaré maps.
 
-    Is initialized from the poincare method in the Functional class of the core module.
+    Is initialized from the poincare method in the Functional
+
+    class of the core module.
 
     Example
     -------
@@ -44,7 +46,11 @@ class Poincare(trajectories.Trajectory):
         super().__init__(t, x, variables)
 
     def _fit(self, a, plane, grade, axis):
-        """Compute the polynomial fitting of the portion of the trajectory that crosses the desired Poincaré surface plane, over which the map will be evaluated.
+        """Compute the polynomial fitting of the portion of the
+
+            trajectory that crosses the desired Poincaré surface plane,
+
+            over which the map will be evaluated.
 
         Parameters
         ----------
@@ -60,7 +66,13 @@ class Poincare(trajectories.Trajectory):
         Return
         ------
         out: tuple
-            Tuple of three objects. First it returns the time points where the trajectory touched the plane, second, it gives the xn+1, xn array, and finally the iterations array, which contains the nth iterations with their respective values.
+            Tuple of three objects. First it returns the time points where
+
+            the trajectory touched the plane, second, it gives the xn+1,
+
+            xn array, and finally the iterations array,
+
+            which contains the nth iterations with their respective values.
 
         Example
         -------

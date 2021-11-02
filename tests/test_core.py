@@ -2,9 +2,13 @@
 
 
 import caospy
+
 import numpy as np
+
 import pandas as pd
+
 import pytest
+
 import sympy as sp
 
 
@@ -24,7 +28,6 @@ def test_str_type_name():
         caospy.Functional(f, 3)
 
 
-# Test for integration interval, tf > ti
 def test_time_interval(time_interval_fun):
     y0 = [1]
     par = [2]
@@ -35,7 +38,6 @@ def test_time_interval(time_interval_fun):
 
 
 # Tests for Symbolic class init
-
 # Test for name type
 def test_symbolic_name():
     v = ["x", "y", "z"]
@@ -72,9 +74,30 @@ def test_system_shape():
         caospy.Symbolic(["v"], f, p, name)
 
 
-# Test for odeint  numerical integration
+# Test dimennsion OneDim
+def test_onedim():
+    f = ["x+y", "x*y"]
+    v = ["x", "y"]
+    par = []
+    name = "onedim"
+    with pytest.raises(Exception):
+        caospy.OneDim(v, f, par, name)
 
 
+# Test dimennsion TwoDim
+def test_twodim():
+    f = ["x+y"]
+    v = ["x"]
+    par = []
+    name = "twodim"
+    with pytest.raises(ValueError):
+        caospy.TwoDim(v, f, par, name)
+
+
+# End Warnings tests -------------------------------------------
+
+
+# Numerical integration test
 def test_time_evolution(time_evolution_fun):
     y0 = [0.5]
     t0 = 0.0
@@ -87,8 +110,6 @@ def test_time_evolution(time_evolution_fun):
 
 
 # Test for check zeros values
-
-
 def test_roots_0(system0):
     p = []
     j = system0.fixed_points(p)
@@ -143,9 +164,9 @@ def test_roots_lorenz(lorenz):
     as1 = [0, 0, 0]
     as2 = [(beta * (rho - 1)) ** 0.5, (beta * (rho - 1)) ** 0.5, rho - 1]
     as3 = [-((beta * (rho - 1)) ** 0.5), -((beta * (rho - 1)) ** 0.5), rho - 1]
-    assert list(j[0]) in (as1, as2, as3)
-    assert list(j[1]) in (as1, as2, as3)
-    assert list(j[2]) in (as1, as2, as3)
+    assert np.all(j[0] == as11 for as11 in (as1, as2, as3))
+    assert np.all(j[1] == as22 for as22 in (as1, as2, as3))
+    assert np.all(j[2] == as33 for as33 in (as1, as2, as3))
 
 
 def test_roots_logistic(logistic):
@@ -153,13 +174,11 @@ def test_roots_logistic(logistic):
     k = 4
     p = [r, k]
     j = logistic.fixed_points(p)
-    as1 = [0, k]
-    assert list(j) in (as1,)
+    as1 = [[0], [k]]
+    assert np.all(j == as1)
 
 
 # Tetst for check eigenvalues and eigenvectors
-
-
 def test_eigenvalue(funtwodim):
     par = [4, 2]
     val = funtwodim.eigenvalues(par)
@@ -170,10 +189,20 @@ def test_eigenvalue(funtwodim):
 def test_eigenvectors(funtwodim):
     par = [4, 2]
     vec = funtwodim.eigenvectors(par)
-    vec1 = 1 / vec[0, 0] * vec[0]
-    vec2 = 1 / vec[1, 0] * vec[1]
+    vec1 = 1 / vec[0, 0, 0] * vec[0, 0]
+    vec2 = 1 / vec[0, 1, 0] * vec[0, 1]
     assert list(vec1) in ([1, 1], [1, -4])
     assert list(vec2) in ([1, 1], [1, -4])
+
+
+# Test for checch full return amtrix
+def test_reach4(reachfull):
+    par = [45]
+    matrices = reachfull.full_linearize(par)
+    assert np.all(matrices[0] == [0])
+    assert np.all(matrices[1] == par)
+    assert np.all(matrices[2] == par)
+    assert np.all(matrices[3] == [1])
 
 
 # Tetst for check OneDim dataframe
@@ -195,8 +224,6 @@ def test_onedimdf():
 
 
 # Test for OneDim
-
-
 def test_onedim_zero_slope(zero_slope_syst):
     p = []
     with pytest.raises(caospy.LinearityError):
@@ -206,8 +233,6 @@ def test_onedim_zero_slope(zero_slope_syst):
 # ---------------------------------------
 # Tetst for check TwoDimensional dataframes
 # ---------------------------------------
-
-
 # Saddle points
 def test_saddle():
     variables = ["x", "y"]
@@ -215,8 +240,8 @@ def test_saddle():
     p1 = []
     s1 = caospy.TwoDim(variables, funciones, p1, "Saddle")
     l_saddle = s1.fixed_point_classify(p1)
-    assert list(l_saddle["$Type$"]) == ["Saddle"]
-    assert list(l_saddle["$\u0394$"]) == [-2 + 0j]
+    assert np.all(l_saddle["$Type$"] == ["Saddle"])
+    assert np.all(l_saddle["$\u0394$"] == [-2 + 0j])
 
 
 # Unstable Node
@@ -226,8 +251,8 @@ def test_node():
     p1 = []
     s1 = caospy.TwoDim(variables, funciones, p1, "Saddle")
     l_node = s1.fixed_point_classify(p1)
-    assert list(l_node["$Type$"]) == ["Unstable Node"]
-    assert list(l_node["$\u0394$"]) == [5 + 0j]
+    assert np.all(l_node["$Type$"] == ["Unstable Node"])
+    assert np.all(l_node["$\u0394$"] == [5 + 0j])
 
 
 # Stable Node
@@ -237,7 +262,7 @@ def test_stable():
     p1 = []
     s1 = caospy.TwoDim(variables, funciones, p1, "Stable")
     l_stable = s1.fixed_point_classify(p1)
-    assert list(l_stable["$Type$"]) == ["Stable Node"]
+    assert np.all(l_stable["$Type$"] == ["Stable Node"])
 
 
 # Degenerate Node
@@ -247,7 +272,7 @@ def test_degenerate():
     p1 = []
     s1 = caospy.TwoDim(variables, funciones, p1, "Degenerate")
     l_degenerate = s1.fixed_point_classify(p1)
-    assert list(l_degenerate["$Type$"]) == ["Unstable Degenerate Node"]
+    assert np.all(l_degenerate["$Type$"] == ["Unstable Degenerate Node"])
 
 
 # Center Node
@@ -257,7 +282,7 @@ def test_center():
     p1 = []
     s1 = caospy.TwoDim(variables, funciones, p1, "Center")
     l_center = s1.fixed_point_classify(p1)
-    assert list(l_center["$Type$"]) == ["Center"]
+    assert np.all(l_center["$Type$"] == ["Center"])
 
 
 # Non-isolated
@@ -267,13 +292,10 @@ def test_nonisolated():
     p1 = []
     s1 = caospy.TwoDim(variables, funciones, p1, "Non-isolated")
     l_center = s1.fixed_point_classify(p1)
-    assert list(l_center["$Type$"]) == [
-        "Non Isolated Fixed-Points," + "Line of Lyapunov stable fixed points"
-    ]
-
-
-# Tests for Poincare Map
-# -------------------------------------------------------------------------
-# Tests raises errors
-# -------------------------------------------------------------------------
-# -------------------------------------------------------------------------
+    assert np.all(
+        l_center["$Type$"]
+        == [
+            "Non Isolated Fixed-Points,"
+            + "Line of Lyapunov stable fixed points"
+        ]
+    )

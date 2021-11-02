@@ -100,7 +100,9 @@ class Logistic(OneDimMixin, AutoSymbolic):
 
 
 class RosslerChaos(MultiVarMixin, AutoSymbolic):
-    """Implementation for Rossler's (Chaos) system defined by the following equations.
+    """Implementation for Rossler's (Chaos) system defined
+
+     by the following equations.
 
     dx/dt = - (y + z)
     dy/dt = x + a y
@@ -131,7 +133,9 @@ class RosslerChaos(MultiVarMixin, AutoSymbolic):
 
 
 class RosslerHyperChaos(MultiVarMixin, AutoSymbolic):
-    """Implementation for Rossler's (Hyper Chaos) system defined by the following equations.
+    """Implementation for Rossler's (Hyper Chaos) s
+
+       ystem defined by the following equations.
 
     dx/dt = - (y + z)
     dy/dt = x + a y + w

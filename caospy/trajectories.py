@@ -13,6 +13,7 @@
 # ==============================================================================
 
 import numpy as np
+
 import pandas as pd
 
 # ==============================================================================
@@ -23,16 +24,25 @@ import pandas as pd
 class Trajectory:
     """Time series and states matrix given from an integrated dynamical system.
 
-    The attributes defined for the object are the time vector, the state matrix, the number of variables and the column names.
+    The attributes defined for the object are the time vector,
 
-    The time vector is a numpy.linspace defined by the integration time interval and the number of points or step defined.
+    the state matrix, the number of variables and the column names.
 
-    The state matrix has the system's variable values for every given time in the time vector.
+    The time vector is a numpy.linspace defined by the
+
+    integration time interval and the number of points or step defined.
+
+    The state matrix has the system's
+
+    variable values for every given time in the time vector.
 
     Attributes
     ----------
     x: ``np.array``
-        Numpy array with shape (i, j). Being i the number of variables and j the number of points of integration.
+        Numpy array with shape (i, j). Being i the number of variables and j
+
+        the number of points of integration.
+
     t: ``np.array``
         Numpy array with the time interval defined in the integration.
     n_var: ``int``
@@ -64,18 +74,22 @@ class Trajectory:
     def __init__(self, t, x, variables):
         self.x = x  # Devuelve matriz de trayectorias x
         self.t = t  # Devuelve vector de tiempo t
-        self.n_var = len(x[:, 0])
+        self.n_var = np.size(x[:, 0])
         if variables == []:
             variables = [f"$x_{i}$" for i in range(self.n_var)]
         self.cols = ["t"] + [f"{v}" for v in variables]
 
     def to_table(self):
-        """Return a data frame of the trajectory, indicating variables states and time.
+        """Return a data frame of the trajectory, indicating variables states
+
+           and time.
 
         Return
         ------
         out: pandas.DataFrame
-            Pandas data frame with a row for every time point of the interval and a column for time and every variable of the system.
+            Pandas data frame with a row for every time point of the interval
+
+            and a column for time and every variable of the system.
 
         Example
         -------
