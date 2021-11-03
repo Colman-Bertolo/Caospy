@@ -31,32 +31,25 @@ class Functional:
     """Dynamical system defined by its derivatives and name.
 
     Callable type should take a state vector, a time value and a parameters
-
     vector and then must compute and return the derivative of the system in
-
     respect to a given state of it.
 
     dy / dt = f(x, t, p)
 
     Provides access to the attribute of the function that gives the derivatives
-
     for each variable, the name is also an attribute together with the
-
     variables in case these are defined.
 
     Parameters
     ----------
     func: callable
         The func is used to compute the derivative of the system given a set of
-
          variable values, and parameters.
     name: str
         System's name.
     *args
         The variable arguments are the variable names, and sometimes are needed
-
         for implementing methods in subclasses.
-
 
     Attributes
     ----------
@@ -114,15 +107,14 @@ class Functional:
         abs_tol=1e-12,
         mx_step=0.004,
     ):
-        """Integrates a system in forward time.
+        """
+        Integrates a system in forward time.
 
         Parameters
         ----------
         x0: ``list``
             Set of initial conditions of the system. Values inside must
-
-             be of int or float type.
-
+            be of int or float type.
         parameters: ``list``
             Set of the function's parameter values for this particular case.
         ti: ``int, float``, optional (default=0)
@@ -136,22 +128,25 @@ class Functional:
         mx_step: ``int, float``, optional (default=0.004)
             Maximum integration step of integrator.
 
+
         Raises
         ------
         ValueError
             Final integration time must be greater than initial
-
             integration time.
+
 
         Returns
         -------
-        Trajectory: caospy.trajectories.Trajectory
+        Trajectory: caospy.trajectories.Trajector
             Trajectory of a dynamical system in a given time interval.
+
 
         See Also
         --------
         scipy.integrate.solve_ivp
         caospy.trajectories.Trajectory
+
 
         Example
         -------
@@ -163,6 +158,7 @@ class Functional:
         <caospy.trajectories.Trajectory at 0x18134df0>
         >>> type(t1)
         caospy.trajectories.Trajectory
+
         """
         if not tf > ti:
             raise ValueError(
@@ -201,14 +197,13 @@ class Functional:
         """Integrates a system forward in time, eliminating the transient.
 
         Then returns a Poincare type object, which can be worked with to
-
         get the Poincaré maps.
+
 
         Parameters
         ----------
         x0: list
             Set of initial conditions of the system. Values inside must be
-
             of int or float type.
         parameters: list
             Set of parameter values for this particular case.
@@ -225,14 +220,17 @@ class Functional:
         mx_step: int, float, optional(default=0.01)
             Maximum integration step of integrator.
 
+
         Returns
         -------
         Poincare: caospy.poincare.Poincare
             Poincare object defined by t_calc time vector and matrix of states.
 
+
         See Also
         --------
         caospy.trajectories.Trajectory
+
 
         Example
         -------
@@ -278,12 +276,11 @@ class Functional:
 
 
 class Symbolic(Functional):
-    """Dynamical system defined by variables, parameters and functions.
+    """
+    Dynamical system defined by variables, parameters and functions.
 
     Variables, functions and parameters must be lists of strings, the number
-
     of variables must match the number of equations, and the name should
-
     be a string.
 
     The available attributes are the inputed variables, functions,
@@ -291,6 +288,7 @@ class Symbolic(Functional):
     are the variables and parameters dict, which will store the
     sympy.symbols for the parameters and variables, and lastly the
     sympy.Equations list containing the functions.
+
 
     Parameters
     ----------
@@ -302,6 +300,7 @@ class Symbolic(Functional):
         System's list of parameter names.
     name: str
         System's name.
+
 
     Attributes
     ----------
@@ -315,7 +314,6 @@ class Symbolic(Functional):
         Here we store the params argument.
     _variables: dict
         Dictionary with variables stored with variable name of str type as keys
-
         and variables defined as sympy.Symbol as values.
     _parameters: dict
         Dictionary with parameters stored with variable name of str type as
@@ -323,6 +321,7 @@ class Symbolic(Functional):
     _equations: list
         List with system's functions stored as sympy.Equations, all equated
         to 0.
+
 
     Raises
     ------
@@ -336,6 +335,7 @@ class Symbolic(Functional):
     ValueError
         System must have equal number of variables and equations,
         instead has {len(x)} variables"and {len(f)} equations
+
 
     Example
     -------
@@ -366,6 +366,7 @@ class Symbolic(Functional):
     {'a': a, 'b': b, 'c': c}
     >>> sample_symbolic._equations
     [Eq(-a + x1*x2, 0), Eq(b*x2**2 - x3, 0), Eq(c*x1/x2, 0)]
+
     """
 
     def __init__(self, x, f, params, name):
@@ -434,10 +435,14 @@ class Symbolic(Functional):
         super().__init__(fun, self._name, v_names)
 
     def _linear_analysis(self, p, initial_guess, reach=5):
-        """Compute the system's roots, so called "fixed points" in dynamical
-           systems, given that the derivative is zero in them. Then it also
-           gets the Jacobian matrix for the system and evaluates it in the
-           different roots to find the eigenvalues and eigenvectors.
+        """
+        Compute the system's roots.
+
+        They're called "fixed points" in dynamical systems,
+        given that the derivative is zero in them. Then it also
+        gets the Jacobian matrix for the system and evaluates it in the
+        different roots to find the eigenvalues and eigenvectors.
+
 
         Parameters
         ----------
@@ -455,12 +460,14 @@ class Symbolic(Functional):
             the eigenvalues, if 4 returns only eigenvectors, and finally if 5,
             it returns all of the previous.
 
+
         Returns
         -------
         list
             List containing roots, evaluated jacobians, eigenvalues and
             eigenvectors in that order. Output could be captured by separated
             variables.
+
 
         Examples
         --------
@@ -508,7 +515,7 @@ class Symbolic(Functional):
                [[ 1.,  1.,  0.],
                 [ 0.,  2., -1.],
                 [ 1., -1.,  0.]]]), array([[ 0.61803399, -1.61803399, -2.],
-               [-0.61803399,  1.61803399,  2.        ]]),
+               [-0.61803399,  1.61803399,  2.]]),
                array([[ 2.15353730e-01, -3.48449655e-01,  9.12253040e-01],
                [ 8.34001352e-01,  5.15441182e-01, -1.96881012e-01],
                [-7.07106781e-01, -7.07106781e-01, -1.76271580e-16]])]
@@ -615,9 +622,12 @@ class Symbolic(Functional):
             return [roots, a_matrices, w, v]
 
     def fixed_points(self, p, initial_guess=[]):
-        """Return the roots of the system, given a set of parameters values.
-            If function is not implemented by sypmpy.solve, a set of initial
-            guess values is needed.
+        """
+        Return the roots of the system, given a set of parameters values.
+
+        If function is not implemented by sypmpy.solve, a set of initial
+        guess values is needed.
+
 
         Parameters
         ----------
@@ -625,11 +635,13 @@ class Symbolic(Functional):
             Set of parameter values, they should be int or float type.
         initial_guess: ``list``, ``tuple``, optional (default=[0, ..., 0])
 
+
         Return
         ------
         out: np.array
             Numpy array containing one row per root, and one column per
             variable.
+
 
         Example
         -------
@@ -661,14 +673,15 @@ class MultiVarMixin(Symbolic):
     """Multivariable system's specific implementations."""
 
     def jacob_eval(self, p, initial_guess=[]):
-        """Compute the evaluated Jacobian matrix, of all the system's
-           fixed points.
+        """
+        Compute the evaluated  fixed points Jacobian matrix.
 
         Parameters
         ----------
         p: ``list``, ``tuple``
             Set of parameter values, they should be int or float type.
         initial_guess: ``list``, ``tuple``, optional (default=[0, ..., 0])
+
 
         Return
         ------
@@ -682,7 +695,6 @@ class MultiVarMixin(Symbolic):
 
         Example
         -------
-
         In order to implement the method, we initialize a MultiDim type
         object, see ``MultiDim`` class to know this implementation.
 
@@ -700,12 +712,13 @@ class MultiVarMixin(Symbolic):
                 [ 0. +0.j        ,  0.+13.41640786j, -1. +0.j        ],
                 [ 5. +0.j        , -1. +0.j        ,  0. +0.j        ]]])
 
+
         """
         return self._linear_analysis(p, initial_guess, 2)[1]
 
     def eigenvalues(self, p, initial_guess=[]):
-        """Compute the eigenvalues, of all the system's fixed points,
-           given their jacobian matrix.
+        """
+        Compute the eigenvalues, of all the system's fixed points.
 
         Parameters
         ----------
@@ -714,15 +727,16 @@ class MultiVarMixin(Symbolic):
         initial_guess: ``list``, ``tuple``,
         optional (default=[0, ..., 0])
 
+
         Return
         ------
         out: array
             Numpy array, of shape (i, j), where i is the number of
             fixed points, j is the number of variables.
 
+
         Example
         -------
-
         In order to implement the method, we initialize a MultiDim
         type object, see ``MultiDim`` class to know this implementation.
 
@@ -735,18 +749,20 @@ class MultiVarMixin(Symbolic):
         array([[ 0.61803399, -1.61803399, -2.        ],
                [-0.61803399,  1.61803399,  2.        ]])
 
+
         """
         return self._linear_analysis(p, initial_guess, 3)[2]
 
     def eigenvectors(self, p, initial_guess=[]):
-        """Compute the eigenvectors, of all the system's fixed points,
-           given their jacobian matrix.
+        """
+        Compute the eigenvectors, of all the system's fixed points.
 
         Parameters
         ----------
         p: ``list``, ``tuple``
             Set of parameter values, they should be int or float type.
         initial_guess: ``list``, ``tuple``, optional (default=[0, ..., 0])
+
 
         Return
         ------
@@ -756,6 +772,7 @@ class MultiVarMixin(Symbolic):
 
             The element i, j, k is the component in the kth direction,
             of the jth vector, of the ith root.
+
 
         Example
         -------
@@ -781,14 +798,15 @@ class MultiVarMixin(Symbolic):
         return self._linear_analysis(p, initial_guess, 4)[3]
 
     def full_linearize(self, p, initial_guess=[]):
-        """Compute the roots, evaluated jacobians, eigenvalues
-            and eigenvectors of the system.
+        """
+        Compute the roots, evaluated jacobians, eigenvalues and eigenvectors.
 
         Parameters
         ----------
         p: ``list``, ``tuple``
             Set of parameter values, they should be int or float type.
         initial_guess: ``list``, ``tuple``, optional (default=[0, ..., 0])
+
 
         Return
         ------
@@ -798,7 +816,8 @@ class MultiVarMixin(Symbolic):
             the eigenvectors. The type and shape of each are the same as
             in their particular implementations. See ``fixed_points``,
             ``jacob_eval``, ``eigenvalues`` and ``eigenvectors``
-             for further detail.
+            for further detail.
+
 
         Example
         -------
@@ -812,11 +831,10 @@ class MultiVarMixin(Symbolic):
         >>> sample_multidim = caospy.MultiDim(v, f, p, 'sample_sys')
         >>> p_values = [1, 1, 1]
         >>> sample_symbolic.full_linearize(p_values)
-        [array([[-1., -1.,  1.],
+               [array([[-1., -1.,  1.],
                [ 1.,  1.,  1.]]), array([[[-1., -1.,  0.],
                 [ 0., -2., -1.],
                 [ 1., -1.,  0.]],
-
                [[ 1.,  1.,  0.],
                 [ 0.,  2., -1.],
                 [ 1., -1.,  0.]]]), array([[ 0.61803399, -1.61803399, -2.],
@@ -824,10 +842,10 @@ class MultiVarMixin(Symbolic):
                array([[[ 2.15353730e-01, -3.48449655e-01,  9.12253040e-01],
                 [ 8.34001352e-01,  5.15441182e-01, -1.96881012e-01],
                 [-7.07106781e-01, -7.07106781e-01, -1.76271580e-16]],
-
                [[-2.15353730e-01,  3.48449655e-01,  9.12253040e-01],
                 [ 8.34001352e-01,  5.15441182e-01,  1.96881012e-01],
                 [-7.07106781e-01, -7.07106781e-01,  1.76271580e-16]]])]
+
         """
         return self._linear_analysis(p, initial_guess, 5)
 
@@ -841,19 +859,24 @@ class OneDimMixin(Symbolic):
     """Specific behaviors of onedimensional systems."""
 
     def stability(self, parameters):
-        """Compute the slope of the derivative function at the fixed points,
-            giving their stability.
+        """
+        Compute the slope of the derivative function at the fixed points.
+
+        It gives you the system's stability
+
 
         Parameters
         ----------
         parameters: ``list``, ``tuple``
             Set of values of the parameters, that specify the system.
 
+
         Return
         ------
         out: pd.DataFrame
             Pandas data frame, which columns are "Fixed point", "Slope",
             "Stability". It has a row for every fixed point of the system.
+
 
         Example
         -------
@@ -907,9 +930,11 @@ class OneDimMixin(Symbolic):
 
 
 class OneDim(OneDimMixin, Symbolic):
-    """Captures the specific tools of analysis for onedimensional systems.
+    """
+    Captures the specific tools of analysis for onedimensional systems.
 
     Has the same attributes as the Symbolic class.
+
 
     Example
     -------
@@ -919,6 +944,7 @@ class OneDim(OneDimMixin, Symbolic):
     >>> sample_onedim = caospy.OneDim(v, f, p, 'sample_1d')
     >>> sample_onedim
     <caospy.core.OneDim object at 0x0000027546C36850>
+
     """
 
     def __init__(self, x, f, params, name):
@@ -939,7 +965,10 @@ class TwoDimMixin(MultiVarMixin, Symbolic):
     """Specific behaviors of twodimensional systems."""
 
     def fixed_point_classify(self, params_values, initial_guess=[]):
-        """Classifies the fixed points according to their linear stability,
+        """
+        Fix points classification in 2D.
+
+        Classifies the fixed points according to their linear stability,
         based on the values of the trace and determinant given by the evaluated
         jacobian matrix.
 
@@ -948,6 +977,7 @@ class TwoDimMixin(MultiVarMixin, Symbolic):
         params_values: ``list``,``tuple``
             Set of specific parameter values to fix the system.
         initial_guess: ``list``, ``tuple``, optional (default=[0, ..., 0])
+
 
         Return
         ------
@@ -959,6 +989,7 @@ class TwoDimMixin(MultiVarMixin, Symbolic):
             The first two columns have the values of the variables where
             the fixed point is. Then the two eigenvalues, the trace and
             determinant, and finally the classification of the fixed point.
+
 
         Examples
         --------
@@ -979,11 +1010,13 @@ class TwoDimMixin(MultiVarMixin, Symbolic):
         >>> sample_TwoDim.fixed_point_classify(p_values)
            $x$  $y$ $λ_{1}$ $λ_{2}$      $σ$     $Δ$       $Type$
         0  0.0  0.0    -1.0    -2.0  (-3+0j)  (2+0j)  Stable Node
+
         """
         a = self.jacob_eval(params_values, initial_guess)
         roots = self.fixed_points(params_values, initial_guess)
         if a is None:
-            return "There is no fixed points to evaluate"
+
+            return "There is no fixed points to evaluate."
 
         traces = []
         dets = []
@@ -1013,7 +1046,7 @@ class TwoDimMixin(MultiVarMixin, Symbolic):
                 elif trace > 0:
                     classification.append(
                         "Non Isolated Fixed-Points,"
-                        + "Line of unstable fixed points"
+                        + "Line of unstable fixed points."
                     )
 
             elif det < 0:
@@ -1081,9 +1114,11 @@ class TwoDimMixin(MultiVarMixin, Symbolic):
 
 
 class TwoDim(TwoDimMixin, Symbolic):
-    """Englobes the specific implementations of the tools of analysis for
+    """
+    Specific implementations 2D.
 
-       two dimensional systems.
+    Englobes the specific implementations of the tools of analysis for systems.
+
 
     Example
     -------
@@ -1094,6 +1129,7 @@ class TwoDim(TwoDimMixin, Symbolic):
         "sample2d")
     >>> sample_TwoDim
     <caospy.core.TwoDim object at 0x0000027561643A60>
+
     """
 
     def __init__(self, x, f, params, name):
@@ -1111,9 +1147,11 @@ class TwoDim(TwoDimMixin, Symbolic):
 
 
 class MultiDim(MultiVarMixin, Symbolic):
-    """Implements the specific stability analysis tools and behaviorfor
+    """
+    Multidimensional systems.
 
-       the multidimensional systems.
+    Implements the specific stability analysis tools and behaviorfor
+    the multidimensional systems.
 
     Example
     -------

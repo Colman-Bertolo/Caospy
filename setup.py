@@ -14,7 +14,7 @@ REQUIREMENTS = ["numpy", "pandas", "scipy", "sympy", "matplotlib"]
 
 setup(
     name="Caospy",
-    version="0.1.1",
+    version="0.0.1",
     description="Dynamic systems analysis",
     long_description=LONG_DESCRIPTION,
     long_description_content_type="text/markdown",

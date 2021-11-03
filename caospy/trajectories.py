@@ -22,18 +22,15 @@ import pandas as pd
 
 
 class Trajectory:
-    """Time series and states matrix given from an integrated dynamical system.
+    """
+    Time series and states matrix given from an integrated dynamical system.
 
     The attributes defined for the object are the time vector,
-
     the state matrix, the number of variables and the column names.
-
     The time vector is a numpy.linspace defined by the
-
     integration time interval and the number of points or step defined.
 
     The state matrix has the system's
-
     variable values for every given time in the time vector.
 
     Attributes
@@ -68,7 +65,7 @@ class Trajectory:
            [ 1.00000000e+00,  9.80103295e-01,  9.60412752e-01, ...,
             -4.18503698e-87, -4.16832993e-87, -4.15168958e-87]])
     >>> sample_trajectory.n_var
-    3
+
     """
 
     def __init__(self, t, x, variables):
@@ -80,15 +77,16 @@ class Trajectory:
         self.cols = ["t"] + [f"{v}" for v in variables]
 
     def to_table(self):
-        """Return a data frame of the trajectory, indicating variables states
+        """
 
-           and time.
+        Return a data frame of the trajectory.
+
+        Indicates variables states and time.
 
         Return
         ------
         out: pandas.DataFrame
             Pandas data frame with a row for every time point of the interval
-
             and a column for time and every variable of the system.
 
         Example

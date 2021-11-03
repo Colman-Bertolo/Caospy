@@ -16,11 +16,12 @@ from .core import AutoSymbolic, MultiVarMixin, OneDimMixin
 
 
 class Lorenz(MultiVarMixin, AutoSymbolic):
-    """Implementation for Lorenz's system defined by the following equations.
+    """
+    Implementation for Lorenz's system defined by the following equations.
 
-    dx/dt = sigma (y - x)
-    dy/dt = x (rho - z) - y
-    dz/dt = x y - beta z
+    dx / dt = sigma * (y - x)
+    dy / dt = x * (rho - z) - y
+    dz / dt = x * y - beta * z
 
     The system has the same attributes as Symbolic and Functional types.
 
@@ -33,6 +34,7 @@ class Lorenz(MultiVarMixin, AutoSymbolic):
     ['sigma * (y - x)', 'x * (rho - z) - y', 'x * y - beta * z']
     >>> sample_Lorenz.params
     ['sigma', 'rho', 'beta']
+
     """
 
     _name = "Lorenz"
@@ -49,9 +51,9 @@ class Lorenz(MultiVarMixin, AutoSymbolic):
 class Duffing(AutoSymbolic):
     """Implementation for Duffing's system defined by the following equations.
 
-    dx/dt = y
-    dy/dt = -delta y - alpha x - beta x^3 + gamma cos(omega t)
-    dt/dt = 1
+    dx / dt = y
+    dy / dt = -delta * y - alpha * x - beta x**3 + gamma * cos(omega * t)
+    dt / dt = 1
 
     The system has the same attributes as Symbolic and Functional types.
     """
@@ -73,7 +75,7 @@ class Duffing(AutoSymbolic):
 class Logistic(OneDimMixin, AutoSymbolic):
     """Implementation for Logistic system defined by the following equation.
 
-    dx/dt = r N (1 - N / k)
+    dx / dt = r * N * (1 - N / k)
 
     The system has the same attributes as Symbolic and Functional types.
 
@@ -100,13 +102,12 @@ class Logistic(OneDimMixin, AutoSymbolic):
 
 
 class RosslerChaos(MultiVarMixin, AutoSymbolic):
-    """Implementation for Rossler's (Chaos) system defined
+    """
+    Implementation for Rossler's (Chaos) system.
 
-     by the following equations.
-
-    dx/dt = - (y + z)
-    dy/dt = x + a y
-    dz/dt = b + z (x - c)
+    dx / dt = - (y + z)
+    dy / dt = x + a * y
+    dz / dt = b + z * (x - c)
 
     The system has the same attributes as Symbolic and Functional types.
 
@@ -119,6 +120,7 @@ class RosslerChaos(MultiVarMixin, AutoSymbolic):
     ['- (y + z)', 'x + a * y', 'b + z * (x - c)']
     >>> sample_RosslerChaos.params
     ['a', 'b', 'c']
+
     """
 
     _name = "Rossler-chaos"
@@ -133,14 +135,13 @@ class RosslerChaos(MultiVarMixin, AutoSymbolic):
 
 
 class RosslerHyperChaos(MultiVarMixin, AutoSymbolic):
-    """Implementation for Rossler's (Hyper Chaos) s
+    """
+    Implementation for Rossler's (Hyper Chaos) system.
 
-       ystem defined by the following equations.
-
-    dx/dt = - (y + z)
-    dy/dt = x + a y + w
-    dz/dt = b + x z
-    dw/dt = c w - d z
+    dx / dt = - (y + z)
+    dy / dt = x + a * y + w
+    dz / dt = b + x * z
+    dw / dt = c * w - d * z
 
     The system has the same attributes as Symbolic and Functional types.
 
@@ -153,6 +154,7 @@ class RosslerHyperChaos(MultiVarMixin, AutoSymbolic):
     ['- (y + z)', 'x + a * y + w', 'b + x * z', 'c * w - d * z']
     >>> sample_RosslerHyperChaos.params
     ['a', 'b', 'c', 'd']
+
     """
 
     _name = "Rossler-hyperchaos"
