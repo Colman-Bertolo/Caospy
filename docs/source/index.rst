@@ -43,7 +43,7 @@ https://github.com/Colman-Bertolo/Caospy
 
    install
    license
-   api
+   Api
 
 
 Indices and tables
