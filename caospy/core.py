@@ -165,7 +165,7 @@ class Functional:
                 "Final integration time must be"
                 + "greater than initial integration time."
             )
-        if int((tf - ti) / n) > mx_step:
+        if ((tf - ti) / n) > mx_step:
             n = int((tf - ti) / mx_step)
 
         t_ev = np.linspace(ti, tf, n)
@@ -247,12 +247,12 @@ class Functional:
 
         """
         # Integrate for the discard time, to eliminate the transient.
-        if int(t_disc / n) > mx_step:
+        if (t_disc / n) > mx_step:
             n1 = int(t_disc / mx_step)
         else:
             n1 = n
 
-        if int(t_calc / n) > mx_step:
+        if (t_calc / n) > mx_step:
             n2 = int(t_calc / mx_step)
         else:
             n2 = n

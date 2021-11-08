@@ -84,60 +84,40 @@ class Poincare(trajectories.Trajectory):
         >>> sample_poincare = sample_sys.poincare(x0, p_values)
 
         """
-        if not plane >= 1 and plane < 4:
-            raise ValueError("Specified plane must be between 1 and 3")
-        if not axis >= 1 and axis < 4:
-            raise ValueError("Specified axis must be between 1 and 3")
+        tc = []
+        x2 = []
+        points = len(self.t)
+        x_plane = self.x[plane - 1]
+        x_axis = self.x[axis - 1]
+        for i in range(1, points):
+            if x_plane[i - 1] < a < x_plane[i]:
+                pa = np.polyfit(
+                    x_plane[(i - 1) : (i + 2)],  # noqa
+                    x_axis[(i - 1) : (i + 2)],  # noqa 
+                    grade,
+                )
+                tc.append(self.t[i])
+                x2.append(pa[0] * a ** 2 + pa[1] * a + pa[2])
 
-        t = np.delete(self.t, [-1, -2])
+        i_times_len = len(tc)
+        mp = np.zeros((2, i_times_len))
+        for i in range(1, i_times_len):
+            mp[0, i] = x2[i - 1]
+            mp[1, i] = x2[i]
+        tc = np.array(tc)
+        x2 = np.array(x2)
 
-        x1a = np.delete(np.roll(self.x[:, axis - 1], 2), [0, 1])
-        x1b = np.delete(np.roll(self.x[:, axis - 1], 1), [0, 1])
-        x1c = np.delete(self.x[:, axis - 1], [0, 1])
+        return tc, mp, x2
+# Noqa is for ignore the two lines because flake8 doesn't allow space
+# before : operator, but it's necessary for black.
 
-        x1_slices = np.vstack((x1a, x1b, x1c))
-
-        x2a = np.delete(np.roll(self.x[:, plane - 1], 2), [0, 1])
-        x2b = np.delete(np.roll(self.x[:, plane - 1], 1), [0, 1])
-        x2c = np.delete(self.x[:, plane - 1], [0, 1])
-
-        x2_slices = np.vstack((x2a, x2b, x2c))
-
-        x1 = x1_slices[:, (x1_slices[0] < a) & (x1_slices[1] > a)]
-        x2 = x2_slices[:, (x1_slices[0] < a) & (x1_slices[1] > a)]
-        t_map = t[(x1_slices[0] < a) & (x1_slices[1] > a)]
-
-        x12 = np.vstack((x2, x1))
-
-        def poly(v, grade_poly):
-            return np.polyfit(v[3:6], v[0:3], grade_poly)
-
-        x12_coeff = np.apply_along_axis(poly, 0, x12, grade)
-
-        def apply_poly(p, a_value):
-            return (
-                p[0] * a_value ** 2 + p[1] * a_value + p[2]
-                if len(p) == 3
-                else p[0] * a_value + p[1]
-            )
-
-        x2_fit = np.apply_along_axis(apply_poly, 0, x12_coeff, a)
-
-        x21 = np.delete(x2_fit, -1)
-        x22 = np.delete(x2_fit, 0)
-
-        xmap = np.array([[x21], [x22]])
-
-        return t_map, xmap, x2
-
-
-class Map:
-    """Defines maps objects with iterations and values."""
-
-    def __init__(self, t, n, i, plane, axis):
-        self.n0 = n[0]
-        self.n1 = n[1]
-        self.iterations = i
-        self.t_iter = t
-        self.plane = plane
-        self.axis = axis
+# class Map:
+#    """Defines maps objects with iterations and values."""
+#
+#    def __init__(self, t, n, i, plane, axis):
+#        self.n0 = n[0]
+#        self.n1 = n[1]
+#        self.iterations = i
+#        self.t_iter = t
+#        self.plane = plane
+#        self.axis = axis
