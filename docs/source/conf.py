@@ -55,7 +55,7 @@ exclude_patterns = []
 # a list of builtin themes.
 #
 import stanford_theme
-html_theme = 'stanford_theme'
+html_theme = 'sphinx_rtd_theme'
 html_theme_path = [stanford_theme.get_html_theme_path()]
 
 # Add any paths that contain custom static files (such as style sheets) here,
