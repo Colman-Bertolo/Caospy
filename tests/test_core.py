@@ -12,6 +12,7 @@ import pytest
 import sympy as sp
 
 
+# ---------- Warning tests
 # Test for Functional Class init - func type:
 def test_callable_type_function():
     f = 1
@@ -285,7 +286,7 @@ def test_center():
     assert np.all(l_center["$Type$"] == ["Center"])
 
 
-# Non-isolated
+# Non-isolated Lyapunov stable
 def test_nonisolated():
     variables = ["x", "y"]
     funciones = ["4*x-3*y", "8*x-6*y"]
@@ -299,3 +300,90 @@ def test_nonisolated():
             + "Line of Lyapunov stable fixed points"
         ]
     )
+
+
+# Non-isolated plane of fixed point
+def test_nonisolated_planefxp():
+    variables = ["x", "y"]
+    funciones = ["y", "x**2"]
+    p1 = []
+    s1 = caospy.TwoDim(variables, funciones, p1, "Non-isolated")
+    l_nipfxp = s1.fixed_point_classify(p1)
+    assert np.all(
+        l_nipfxp["$Type$"]
+        == ["Non Isolated Fixed-Points," + "Plane of fixed points"]
+    )
+
+
+# Non-isolated Line of unstable fixed points
+def test_nonisolated_lineunstfxp():
+    variables = ["x", "y"]
+    funciones = ["-x**2", "4*y-6"]
+    p1 = []
+    s1 = caospy.TwoDim(variables, funciones, p1, "Non-isolated")
+    l_nipfxp = s1.fixed_point_classify(p1)
+    assert np.all(
+        l_nipfxp["$Type$"]
+        == ["Non Isolated Fixed-Points," + "Line of unstable fixed points."]
+    )
+
+
+# Stable degenerate-node
+def test_Stabledegeneratenode():
+    variables = ["x", "y"]
+    funciones = ["-x", "x-y"]
+    p1 = []
+    s1 = caospy.TwoDim(variables, funciones, p1, "stable_degnode")
+    l_center = s1.fixed_point_classify(p1)
+    assert np.all(l_center["$Type$"] == ["Stable Degenerate Node"])
+
+
+# Test for stable and unstable star node
+def test_node_stunst():
+    variables = ["x", "y"]
+    funciones = ["cos(x)", "sin(y)"]
+    p1 = []
+    s1 = caospy.TwoDim(variables, funciones, p1, "stable_degnode")
+    l_node = s1.fixed_point_classify(p1)
+    assert np.all(l_node["$Type$"][1] == "Stable Star Node")
+    assert np.all(l_node["$Type$"][2] == "Unstable Star Node")
+
+
+# Test Stable spiral fixed point
+def test_Stablespriral():
+    variables = ["x", "y"]
+    funciones = ["y", "-sin(x)-1*y"]
+    p1 = []
+    spiral = caospy.TwoDim(variables, funciones, p1, "stable_spiral")
+    l_spiral = spiral.fixed_point_classify(p1)
+    assert np.all(l_spiral["$Type$"][0] == "Stable Spiral")
+
+
+# Test Unstable spiral fixed point
+def test_Unsttablespriral():
+    variables = ["x", "y"]
+    funciones = ["x", "sin(y)+8"]
+    p1 = []
+    spiral = caospy.TwoDim(variables, funciones, p1, "stable_spiral")
+    l_spiraluns = spiral.fixed_point_classify(p1)
+    assert np.all(l_spiraluns["$Type$"][1] == "Unstable Spiral")
+
+
+# Test for check there's not fixed point onedim
+def test_nofixedpoints1D():
+    fun = ["2.74**x"]
+    par = []
+    var = ["x"]
+    no_fixed = caospy.OneDim(var, fun, par, "No Fixed Points")
+    point = no_fixed.stability(par)
+    assert point == "There are no fixed points to evaluate"
+
+
+# Test for check there's not fixed point twodim
+def test_nofixedpoints2D():
+    fun = ["2.74**x", "2.74**y"]
+    par = []
+    var = ["x", "y"]
+    no_fixed_2d = caospy.TwoDim(var, fun, par, "No Fixed Points")
+    point_2d = no_fixed_2d.fixed_point_classify(par)
+    assert point_2d == "There is no fixed points to evaluate."
