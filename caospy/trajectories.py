@@ -12,6 +12,8 @@
 # Imports
 # ==============================================================================
 
+import matplotlib.pyplot as plt
+
 import numpy as np
 
 import pandas as pd
@@ -118,3 +120,75 @@ class Trajectory:
         merge = np.vstack((self.t, self.x))
         trajectory_table = pd.DataFrame(merge.T, columns=col_names)
         return trajectory_table
+
+    def plot_trajectorie(self, var="t-x", ax=None, kws=None):
+        """
+        Plot the trajectories in 2D or 3D.
+
+        It uses the variables from the Trajectories Class init and
+        plot the numerical variables obtained.
+        The user can to set up all the sizes, colors, vars to plot,
+        etc.
+
+        Parameters
+        ----------
+        var:``string``
+             Variables to plot, you can use two (2D plot) o three (3D plot).
+             They must be delimiter by `-` symbol.
+        ax: ``matplotlib.pyplot.Axis``, (optional)
+            Matplotlib axis specification.
+        kws:```dict``  (optional)
+            The parameters to send to set up the plot, like line colors,
+            linewidth, marker face color, etc.
+            Here is a list of available line properties:
+            matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.plot.html
+
+
+        Returns
+        -------
+        ``Axes3DSubplot`` or ``AxesSubplot``
+            A configuration representing the axis data.
+
+        Example
+        -------
+        >>> plot = plot_trajectorie("x-y-z", plt.axes(projection ='3d'))
+        Axes3DSubplot
+        """
+        # Check array's dimension
+        if self.x.ndim == 1:
+            name_var = dict([("t", self.t), ("x", self.x)])
+        elif self.x.ndim == 2 and self.x.shape[1] == 2:
+            name_var = dict(
+                [("t", self.t), ("x", self.x[0, :]), ("y", self.x[1, :])]
+            )
+        else:
+            name_var = dict(
+                [
+                    ("t", self.t),
+                    ("x", self.x[0, :]),
+                    ("y", self.x[1, :]),
+                    ("z", self.x[2, :]),
+                ]
+            )
+
+        ax = plt.gca() if ax is None else ax
+
+        kws = {} if kws is None else kws
+
+        kws.setdefault("color", "r")  # Red line
+        kws.setdefault("lw", "2")  # Linewidth 2 points
+        vars_plot = var.split("-")  # Split string vars to plot
+
+        if len(vars_plot) == 3:  # Plot 3D
+            ax.plot3D(
+                name_var[vars_plot[0]],
+                name_var[vars_plot[1]],
+                name_var[vars_plot[2]],
+                **kws,
+            )
+            ax.grid()
+        else:
+            ax.plot(name_var[vars_plot[0]], name_var[vars_plot[1]], **kws)
+            ax.grid()
+
+        return ax
