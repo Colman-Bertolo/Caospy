@@ -42,6 +42,7 @@ https://github.com/Colman-Bertolo/Caospy
 
 
    install
+   tutorial.ipynb
    license
    Api
 
