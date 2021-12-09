@@ -77,6 +77,7 @@ class Trajectory:
         if variables == []:
             variables = [f"$x_{i}$" for i in range(self.n_var)]
         self.cols = ["t"] + [f"{v}" for v in variables]
+        self.variables = variables
 
     def to_table(self):
         """
@@ -151,7 +152,7 @@ class Trajectory:
 
         Example
         -------
-        >>> plot = plot_trajectorie("x-y-z", plt.axes(projection ='3d'))
+        >>> plot = plot_trajectory("x-y-z", plt.axes(projection ='3d'))
         Axes3DSubplot
         """
         # Check array's dimension
