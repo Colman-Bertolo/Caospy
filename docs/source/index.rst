@@ -6,24 +6,23 @@
 Welcome to Caospy's documentation!
 ==================================
 
-**Caospy**  is a Python package for analyze discrete dynamical systems and chaos.
+**Caospy**  is a Python package to analyze continuous dynamical systems and chaos.
 
 .. note::
-    You need a Python version 3.9+ for use Caospy.
+    You'll need a Python 3.9+ version to run Caospy.
 
 
 
 Its utilities are:
 
-
--  Solve system of ODEs.
--  Classification of fixed points in 1D and 2D.
--  Poincare's maps.
+-  Solve systems of ODEs.
 -  Eigenvalues, eigenvectors and roots of equations.
+-  Classification of fixed points in 1D and 2D.
+-  Poincare maps.
 
 
-It has implemented systems of ordinary differential equations wich are very popular, 
-like Lorenz attractors, Rossler Chaos, Logistic equation and Duffing.    
+Some well studied systems are available in the library, like Lorenz's system, the Logistic
+equation, Duffing's system and the Rosslers-Chaos systems.
 
 **Authors**:
 Juan Colman, Sebastián Bertolo.
