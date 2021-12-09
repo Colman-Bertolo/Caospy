@@ -3,13 +3,13 @@ Caospy API
 
 The modules are:
 
-- **Core**: The core of the package, there are: numerical integration, classification of fixed point 1D and 2D, Symbolic analysis; eigenvalues, eigenvector and roots of systems.
+- **Core**: The core of the package, here we have: numerical integration, classification of one and two dimensional fixed points, Symbolic analysis; eigenvalues, eigenvectors and roots of systems.
+
+- **trajectories**: Treatment of numerically integrated trajectories of dynamical systems.
 
 - **poincare**: Generates the Poincare's maps for periodic orbits.
 
-- **predet_systems**: It has predefined popular systems of ODE's. Lorenz, Logistic, Duffing, RosslerChaos. 
-
-- **trajectories**: Treatment of integrated trajectories of dynamical systems.
+- **predet_systems**: It has predefined well known systems of ODE's. Lorenz, Logistic, Duffing, RosslerChaos. 
 
 -------------------------------------------------------------------------------
 
