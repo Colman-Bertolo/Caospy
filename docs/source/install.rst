@@ -1,10 +1,10 @@
 Installation
 ============ 
 
-Installing Caospy is pretty simple. Here we give you two ways for do it.
+Installing Caospy is pretty simple. Here are two ways to do it.
 
 
-Install with pip
+Installation with pip
 ----------------
 
 Use the next command
@@ -14,18 +14,18 @@ Use the next command
      pip install Caospy
 
 
-Install with source code
+Installation with source code
 ------------------------
 
-When you can't install via pip or you need to work with the source code use this way. 
+If you can't install it via pip or you need to work with the source code use the following way. 
 
-Caospy is a open source project, so you clone the repo with:
+Caospy is an open source project, so you can clone the repo with:
 
 .. code-block:: Python
 
      git clone https://github.com/Colman-Bertolo/Caospy 
 
-Now you have a folder named "Caospy" in your machine. Enter into folder and run:
+Now you have a folder named "Caospy" in your machine. Enter the folder and run:
 
 .. code-block:: Python
 
