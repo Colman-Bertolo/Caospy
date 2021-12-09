@@ -121,7 +121,7 @@ class Trajectory:
         trajectory_table = pd.DataFrame(merge.T, columns=col_names)
         return trajectory_table
 
-    def plot_trajectorie(self, var="t-x", ax=None, kws=None):
+    def plot_trajectory(self, var="t-x", ax=None, kws=None):
         """
         Plot the trajectories in 2D or 3D.
 
