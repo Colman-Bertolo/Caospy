@@ -3,7 +3,7 @@ Caospy API
 
 The modules are:
 
-- **Core**: The core of the package, here we have: numerical integration, classification of one and two dimensional fixed points, Symbolic analysis; eigenvalues, eigenvectors and roots of systems.
+- **core**: The core of the package, here we have: numerical integration, classification of one and two dimensional fixed points, Symbolic analysis; eigenvalues, eigenvectors and roots of systems.
 
 - **trajectories**: Treatment of numerically integrated trajectories of dynamical systems.
 
