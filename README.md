@@ -1,5 +1,5 @@
 [![Documentation Status](https://readthedocs.org/projects/caospy/badge/?version=latest)](https://caospy.readthedocs.io/en/latest/?badge=latest)
-[![Caospy](https://github.com/Colman-Bertolo/Caospy/actions/workflows/caospy_ci.yml/badge.svg)
+[![Caospy](https://github.com/Colman-Bertolo/Caospy/actions/workflows/caospy_ci.yml/badge.svg)]
 
 # Caospy
 Librería destinada al análisis de sistemas dinámicos. 
