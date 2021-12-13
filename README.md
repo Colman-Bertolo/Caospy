@@ -1,6 +1,6 @@
 [![Documentation Status](https://readthedocs.org/projects/caospy/badge/?version=latest)](https://caospy.readthedocs.io/en/latest/?badge=latest)
 [![Caospy](https://github.com/Colman-Bertolo/Caospy/actions/workflows/caospy_ci.yml/badge.svg)](https://github.com/Colman-Bertolo/Caospy/actions/workflows/caospy_ci.yml)
-![MIT License](https://img.shields.io/npm/l/Caospy)(https://caospy.readthedocs.io/en/latest/license.html)
+![MIT License](https://img.shields.io/npm/l/caospy)(https://caospy.readthedocs.io/en/latest/license.html)
 
 
 # Caospy
