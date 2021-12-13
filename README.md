@@ -1,7 +1,7 @@
 [![Documentation Status](https://readthedocs.org/projects/caospy/badge/?version=latest)](https://caospy.readthedocs.io/en/latest/?badge=latest)
 [![Caospy](https://github.com/Colman-Bertolo/Caospy/actions/workflows/caospy_ci.yml/badge.svg)](https://github.com/Colman-Bertolo/Caospy/actions/workflows/caospy_ci.yml)
 [![MIT License](https://img.shields.io/npm/l/caos)](https://caospy.readthedocs.io/en/latest/license.html)
-
+[![Coverage Status](https://coveralls.io/repos/github/Colman-Bertolo/Caospy/badge.svg?branch=main)](https://coveralls.io/github/Colman-Bertolo/Caospy?branch=main)
 
 # Caospy
 Librería destinada al análisis de sistemas dinámicos. 
