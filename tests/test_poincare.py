@@ -5,6 +5,48 @@ import numpy as np
 import pytest
 
 
+# Asset warnings
+def test_map_differnetvar(lorenz):
+    p = [10.0, 166.04, 8 / 3]
+    x0 = [2.0, -1.0, 150.0]
+    poincare_lorenz = lorenz.poincare(x0, p, t_disc=1, t_calc=2)
+    with pytest.raises(ValueError):
+        poincare_lorenz.map_v("x", "x")
+
+
+def test_map_varisnotsystem(lorenz):
+    p = [10.0, 166.04, 8 / 3]
+    x0 = [2.0, -1.0, 150.0]
+    poincare_lorenz = lorenz.poincare(x0, p, t_disc=0.3, t_calc=1)
+    with pytest.raises(ValueError):
+        poincare_lorenz.map_v("k", "x")
+
+
+def test_map_varisoutsystem(lorenz):
+    p = [10.0, 166.04, 8 / 3]
+    x0 = [2.0, -1.0, 150.0]
+    poincare_lorenz = lorenz.poincare(x0, p, t_disc=0.3, t_calc=1)
+    with pytest.raises(ValueError):
+        poincare_lorenz.map_v(6, "x")
+
+
+def test_map_fixedisnotsystem(lorenz):
+    p = [10.0, 166.04, 8 / 3]
+    x0 = [2.0, -1.0, 150.0]
+    poincare_lorenz = lorenz.poincare(x0, p, t_disc=0.3, t_calc=1)
+    with pytest.raises(ValueError):
+        poincare_lorenz.map_v("x", "k")
+
+
+def test_map_fixedsoutsystem(lorenz):
+    p = [10.0, 166.04, 8 / 3]
+    x0 = [2.0, -1.0, 150.0]
+    poincare_lorenz = lorenz.poincare(x0, p, t_disc=0.3, t_calc=1)
+    with pytest.raises(ValueError):
+        poincare_lorenz.map_v("x", 6)
+
+
+# ----------------------------------------- end warnings tests
 # Test for poincare odeint map
 def test_lorenz_maps(lorenz):
     sigma = 10
@@ -202,3 +244,56 @@ def test_fit(lorenz):
     assert np.all((tc_expected - tc) < 1e-4)
     assert np.all((mp_expected - mp) < 1e-4)
     assert np.all((y12_expected - y12) < 1e-4)
+
+
+# Test for poincare  map_v function
+def test_map(lorenz):
+    p = [10.0, 166.04, 8 / 3]
+    x0 = [2.0, -1.0, 150.0]
+    poincare_lorenz = lorenz.poincare(x0, p, t_disc=500, t_calc=40)
+    z_map = poincare_lorenz.map_v("z", "x")
+    value_test = np.array(
+        [
+            0,
+            41.286087463433100,
+            41.286084886611880,
+            41.286078465187190,
+            41.286071814277264,
+            41.286064687685840,
+            41.286057995322100,
+            41.286052033471130,
+            41.286048873520570,
+            41.286047436280210,
+            41.286085858964334,
+            41.286079451427916,
+            41.286078410378330,
+            41.286053450083490,
+            41.286058494775155,
+            41.286066142012790,
+            41.286075885288710,
+            41.286084248813670,
+            41.286056797634720,
+            41.286063412820695,
+            41.286072833550000,
+            41.286081266025800,
+            41.286054438991110,
+            41.286047470994310,
+            41.286048864767004,
+            41.286047831805010,
+            41.286062952575925,
+            41.286056180382710,
+            41.286050839775950,
+            41.286048305566275,
+            41.286047247330735,
+            41.286058319695990,
+            41.286052264980775,
+            41.286048948907485,
+            41.286047469604770,
+            41.286085959637010,
+            41.286079555278825,
+        ]
+    )
+    value_test0 = value_test[0:-1]
+    value_test1 = value_test[1::]
+    assert np.all((z_map.n0 - value_test0) < 1e-2)
+    assert np.all((z_map.n1 - value_test1) < 1e-2)

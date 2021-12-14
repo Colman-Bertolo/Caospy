@@ -103,8 +103,8 @@ class Functional:
         ti=0,
         tf=200,
         n=5000,
-        rel_tol=1e-10,
-        abs_tol=1e-12,
+        rel_tol=1.5e-11,
+        abs_tol=8e-12,
         mx_step=0.004,
     ):
         """

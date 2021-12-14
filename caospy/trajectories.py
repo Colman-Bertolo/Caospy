@@ -35,6 +35,11 @@ class Trajectory:
     The state matrix has the system's
     variable values for every given time in the time vector.
 
+    If the vector's name of the variables is empty, a name will automatically
+    be assigned to each of them in the form $x_i$,
+    where i = 0, 1 ,..., n with n variables.
+
+
     Attributes
     ----------
     x: ``np.array``
@@ -152,23 +157,28 @@ class Trajectory:
 
         Example
         -------
-        >>> plot = plot_trajectory("x-y-z", plt.axes(projection ='3d'))
+        >>> plot = plot_trajectorie("x-y-z", plt.axes(projection ='3d'))
         Axes3DSubplot
         """
         # Check array's dimension
-        if self.x.ndim == 1:
-            name_var = dict([("t", self.t), ("x", self.x)])
-        elif self.x.ndim == 2 and self.x.shape[1] == 2:
+        if len(self.x) == 1:
+
+            name_var = dict([("t", self.t), (self.variables[0], self.x[0, :])])
+        elif len(self.x) == 2 and self.x.shape[0] == 2:
             name_var = dict(
-                [("t", self.t), ("x", self.x[0, :]), ("y", self.x[1, :])]
+                [
+                    ("t", self.t),
+                    (self.variables[0], self.x[0, :]),
+                    (self.variables[1], self.x[1, :]),
+                ]
             )
         else:
             name_var = dict(
                 [
                     ("t", self.t),
-                    ("x", self.x[0, :]),
-                    ("y", self.x[1, :]),
-                    ("z", self.x[2, :]),
+                    (self.variables[0], self.x[0, :]),
+                    (self.variables[1], self.x[1, :]),
+                    (self.variables[2], self.x[2, :]),
                 ]
             )
 
@@ -181,12 +191,14 @@ class Trajectory:
         vars_plot = var.split("-")  # Split string vars to plot
 
         if len(vars_plot) == 3:  # Plot 3D
+
             ax.plot3D(
                 name_var[vars_plot[0]],
                 name_var[vars_plot[1]],
                 name_var[vars_plot[2]],
                 **kws,
             )
+
             ax.grid()
         else:
             ax.plot(name_var[vars_plot[0]], name_var[vars_plot[1]], **kws)
