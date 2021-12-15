@@ -42,7 +42,7 @@ $ pip install -e .
 
 ## Usage 
 
-Let's study the [damping harmonic oscillator](https://en.wikipedia.org/wiki/Harmonic_oscillator) without excitation force. It's a second order ODE  one dimensional but we'll reduce it to a system of first-order odes.
+Let's study the [damped harmonic oscillator](https://en.wikipedia.org/wiki/Harmonic_oscillator) without driving force. It's a second order  one dimensional ODE, but we'll reduce it to a system of first-order odes.
 ```Python
 import caospy as cp
 import matplotlib.pyplot as plt
@@ -51,13 +51,13 @@ import matplotlib.pyplot as plt
 var = ["x", "y"] # Variables
 par = ["k", "c"] # Parameters
 fun = ["y", "-c*y-k*x"] # Functions
-name = "Damped harmonic oscillator" # Problem name
+name = "Damped harmonic oscillator" # System's name
 Ode_2d = cp.TwoDim(var, fun, par, name)
 
 t0 = 0 # Initial time
 tf = 8 # End time
 x0 = [0, 1] # Initial Conditions
-par_value = [100, 1] # Parameter value
+par_value = [100, 1] # Parameter values
 N = 500 # Number of time steps
 sol = Ode_2d.time_evolution(x0, par_value, t0, tf, N)
 
@@ -67,7 +67,7 @@ ax.set_xlabel("t [s]")
 ax.set_ylabel("x [cm]")
 ```
 
-You will get the next figure.
+You'll get the next figure.
 
 ![harmonic](https://raw.githubusercontent.com/Colman-Bertolo/Caospy/main/res/harmonic_oscillator.jpg)
 
