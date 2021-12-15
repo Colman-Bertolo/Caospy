@@ -1,6 +1,6 @@
 # Caospy
 
-![logo](https://github.com/Colman-Bertolo/Caospy/raw/master/res/logo.png)
+![logo](https://github.com/Colman-Bertolo/Caospy/tree/master/res/logo.png)
 
 [![Documentation Status](https://readthedocs.org/projects/caospy/badge/?version=latest)](https://caospy.readthedocs.io/en/latest/?badge=latest)
 [![Caospy](https://github.com/Colman-Bertolo/Caospy/actions/workflows/caospy_ci.yml/badge.svg)](https://github.com/Colman-Bertolo/Caospy/actions/workflows/caospy_ci.yml)
@@ -69,7 +69,7 @@ ax.set_ylabel("x [cm]")
 
 You will get the next figure.
 
-![harmonic](https://github.com/Colman-Bertolo/Caospy/raw/master/res/harmonic_oscillator.jpg)
+![harmonic](https://github.com/Colman-Bertolo/Caospy/tree/master/res/harmonic_oscillator.jpg)
 
 For more examples, please refer to the tutorial in [Documentation](https://caospy.readthedocs.io/en/latest/?badge=latest).
 
