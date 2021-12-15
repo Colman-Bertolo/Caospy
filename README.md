@@ -1,6 +1,6 @@
 # Caospy
 
-![logo](https://github.com/Colman-Bertolo/Caospy/tree/master/res/logo.png)
+![logo](https://raw.githubusercontent.com/Colman-Bertolo/Caospy/main/res/logo.png)
 
 [![Documentation Status](https://readthedocs.org/projects/caospy/badge/?version=latest)](https://caospy.readthedocs.io/en/latest/?badge=latest)
 [![Caospy](https://github.com/Colman-Bertolo/Caospy/actions/workflows/caospy_ci.yml/badge.svg)](https://github.com/Colman-Bertolo/Caospy/actions/workflows/caospy_ci.yml)
