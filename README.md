@@ -1,10 +1,14 @@
+# Caospy
+
+![logo](https://github.com/Colman-Bertolo/Caospy/raw/master/res/logo.png)
+
 [![Documentation Status](https://readthedocs.org/projects/caospy/badge/?version=latest)](https://caospy.readthedocs.io/en/latest/?badge=latest)
 [![Caospy](https://github.com/Colman-Bertolo/Caospy/actions/workflows/caospy_ci.yml/badge.svg)](https://github.com/Colman-Bertolo/Caospy/actions/workflows/caospy_ci.yml)
 [![MIT License](https://img.shields.io/npm/l/caos)](https://caospy.readthedocs.io/en/latest/license.html)
 [![Coverage Status](https://coveralls.io/repos/github/Colman-Bertolo/Caospy/badge.svg?branch=main)](https://coveralls.io/github/Colman-Bertolo/Caospy?branch=main)
 [![https://github.com/leliel12/diseno_sci_sfw](https://img.shields.io/badge/DiSoftCompCi-FAMAF-ffda00)](https://github.com/leliel12/diseno_sci_sfw)
 
-# Caospy
+
 Caospy is a Python package to analyze continuous dynamical systems and chaos.
 
 Its utilities are:
@@ -63,6 +67,10 @@ ax.set_xlabel("t [s]")
 ax.set_ylabel("x [cm]")
 ```
 
+You will get the next figure.
+
+![harmonic](https://github.com/Colman-Bertolo/Caospy/raw/master/res/harmonic_oscillator.jpg)
+
 For more examples, please refer to the tutorial in [Documentation](https://caospy.readthedocs.io/en/latest/?badge=latest).
 
 ## Contributing
@@ -77,6 +85,7 @@ Don't forget to give the project a star! Thanks again!
 3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
 4. Push to the Branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
+
 
 ## License
 
