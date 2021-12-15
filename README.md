@@ -69,7 +69,7 @@ ax.set_ylabel("x [cm]")
 
 You will get the next figure.
 
-![harmonic](https://github.com/Colman-Bertolo/Caospy/tree/master/res/harmonic_oscillator.jpg)
+![harmonic](https://raw.githubusercontent.com/Colman-Bertolo/Caospy/main/res/harmonic_oscillator.jpg)
 
 For more examples, please refer to the tutorial in [Documentation](https://caospy.readthedocs.io/en/latest/?badge=latest).
 
