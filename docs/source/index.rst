@@ -4,7 +4,7 @@
    contain the root `toctree` directive.
 
 Welcome to Caospy's documentation!
-==================================
+===================================
 
 **Caospy**  is a Python package to analyze continuous dynamical systems and chaos.
 

@@ -5,7 +5,7 @@ Installing Caospy is pretty simple. Here are two ways to do it.
 
 
 Installation with pip
-----------------
+---------------------
 
 Use the next command
 
@@ -15,7 +15,7 @@ Use the next command
 
 
 Installation with source code
-------------------------
+-----------------------------
 
 If you can't install it via pip or you need to work with the source code use the following way. 
 
