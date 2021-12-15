@@ -44,22 +44,19 @@ import caospy as cp
 import matplotlib.pyplot as plt
 
 
-var = ["x"]
-fun = ["a*x"]
-par =["a"]
-
-
 var = ["x", "y"] # Variables
 par = ["k", "c"] # Parameters
 fun = ["y", "-c*y-k*x"] # Functions
 name = "Damped harmonic oscillator" # Problem name
 Ode_2d = cp.TwoDim(var, fun, par, name)
+
 t0 = 0 # Initial time
 tf = 8 # End time
 x0 = [0, 1] # Initial Conditions
 par_value = [100, 1] # Parameter value
 N = 500 # Number of time steps
 sol = Ode_2d.time_evolution(x0, par_value, t0, tf, N)
+
 fig, ax = plt.subplots()
 ax = sol.plot_trajectory("t-x") # Plot the solution
 ax.set_xlabel("t [s]")
@@ -80,8 +77,6 @@ Don't forget to give the project a star! Thanks again!
 3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
 4. Push to the Branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
-
-<p align="right">(<a href="#top">back to top</a>)</p>
 
 ## License
 
