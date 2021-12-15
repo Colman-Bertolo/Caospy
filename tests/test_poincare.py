@@ -54,7 +54,7 @@ def test_lorenz_maps(lorenz):
     beta = 8 / 3
     par = [sigma, rho, beta]  # Parameters
     x0 = [2, -1, 150]  # Initials conditions
-    lor = lorenz.poincare(x0, par, 500, 5)
+    lor = lorenz.poincare(x0, par, t_disc=500, t_calc=5)
     assert lor.x[:, -1] == pytest.approx(
         [11.8579, -9.1806, 159.9543], rel=1e-3
     )
@@ -79,7 +79,7 @@ def test_fit(lorenz):
     beta = 8 / 3
     par = [sigma, rho, beta]  # Parameters
     x0 = [2, -1, 150]  # Initials conditions
-    lor = lorenz.poincare(x0, par, 500, 40)
+    lor = lorenz.poincare(x0, par, t_disc=500, t_calc=40)
     tc, mp, y12 = lor._fit(0, 1, 2, 2)
     tc_expected = np.array(
         [

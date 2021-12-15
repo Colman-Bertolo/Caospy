@@ -1,6 +1,3 @@
-# from matplotlib import pyplot as plt
-# from sympy import *
-
 # ==============================================================================
 # Docs
 # ==============================================================================
@@ -102,19 +99,19 @@ class Functional:
         parameters,
         ti=0,
         tf=200,
-        n=5000,
-        rel_tol=1.5e-11,
-        abs_tol=8e-12,
+        n=None,
+        met="RK45",
+        rel_tol=1e-10,
+        abs_tol=1e-12,
         mx_step=0.004,
     ):
-        """
-        Integrates a system in forward time.
+        """Integrates a system in forward time.
 
         Parameters
         ----------
         x0: ``list``
-            Set of initial conditions of the system. Values inside must
-            be of int or float type.
+            Set of initial conditions of the system.
+            Values inside must be of int or float type.
         parameters: ``list``
             Set of the function's parameter values for this particular case.
         ti: ``int, float``, optional (default=0)
@@ -128,25 +125,21 @@ class Functional:
         mx_step: ``int, float``, optional (default=0.004)
             Maximum integration step of integrator.
 
-
         Raises
         ------
         ValueError
-            Final integration time must be greater than initial
-            integration time.
-
+            Final integration time must be greater than
+            initial integration time.
 
         Returns
         -------
-        Trajectory: caospy.trajectories.Trajector
+        Trajectory: caospy.trajectories.Trajectory
             Trajectory of a dynamical system in a given time interval.
-
 
         See Also
         --------
         scipy.integrate.solve_ivp
         caospy.trajectories.Trajectory
-
 
         Example
         -------
@@ -158,30 +151,42 @@ class Functional:
         <caospy.trajectories.Trajectory at 0x18134df0>
         >>> type(t1)
         caospy.trajectories.Trajectory
-
         """
         if not tf > ti:
             raise ValueError(
                 "Final integration time must be"
-                + "greater than initial integration time."
+                "greater than initial integration time."
             )
-        if ((tf - ti) / n) > mx_step:
-            n = int((tf - ti) / mx_step)
+        if n is None:
+            sol = solve_ivp(
+                self.func,
+                [ti, tf],
+                x0,
+                method=met,
+                args=(parameters,),
+                rtol=rel_tol,
+                atol=abs_tol,
+                max_step=mx_step,
+                dense_output=True,
+            )
+            return trajectories.Trajectory(sol.t, sol.y, self.variables)
 
-        t_ev = np.linspace(ti, tf, n)
-        sol = solve_ivp(
-            self.func,
-            [ti, tf],
-            x0,
-            args=(parameters,),
-            t_eval=t_ev,
-            rtol=rel_tol,
-            atol=abs_tol,
-            max_step=mx_step,
-            dense_output=True,
-        )
-        x = sol.sol(t_ev)
-        return trajectories.Trajectory(t_ev, x, self.variables)
+        else:
+            t_ev = np.linspace(ti, tf, n)
+            sol = solve_ivp(
+                self.func,
+                [ti, tf],
+                x0,
+                args=(parameters,),
+                t_eval=t_ev,
+                method=met,
+                rtol=rel_tol,
+                atol=abs_tol,
+                max_step=mx_step,
+                dense_output=True,
+            )
+            x = sol.sol(t_ev)
+            return trajectories.Trajectory(t_ev, x, self.variables)
 
     def poincare(
         self,
@@ -189,7 +194,8 @@ class Functional:
         parameters,
         t_disc=5000,
         t_calc=50,
-        n=2000,
+        n=None,
+        met="RK45",
         rel_tol=1e-10,
         abs_tol=1e-12,
         mx_step=0.004,
@@ -199,20 +205,19 @@ class Functional:
         Then returns a Poincare type object, which can be worked with to
         get the Poincaré maps.
 
-
         Parameters
         ----------
         x0: list
-            Set of initial conditions of the system. Values inside must be
-            of int or float type.
+            Set of initial conditions of the system.
+            Values inside must be of int or float type.
         parameters: list
             Set of parameter values for this particular case.
         t_disc: int, optional (default=5000)
             Transient integration time to be discarded next.
         t_calc: int, optional (default=50)
-            Stationary integration time, the system's states corresponding
-            to this integration time interval are kept and pass to the
-            Poincare object.
+            Stationary integration time, the system's states
+            corresponding to this integration
+            time interval are kept and pass to the Poincare object.
         rel_tol: float, optional (default=1e-10)
             Relative tolerance of integrator.
         abs_tol:float, optional (default=1e-12)
@@ -220,17 +225,14 @@ class Functional:
         mx_step: int, float, optional(default=0.01)
             Maximum integration step of integrator.
 
-
         Returns
         -------
         Poincare: caospy.poincare.Poincare
             Poincare object defined by t_calc time vector and matrix of states.
 
-
         See Also
         --------
         caospy.trajectories.Trajectory
-
 
         Example
         -------
@@ -247,24 +249,14 @@ class Functional:
 
         """
         # Integrate for the discard time, to eliminate the transient.
-        if (t_disc / n) > mx_step:
-            n1 = int(t_disc / mx_step)
-        else:
-            n1 = n
-
-        if (t_calc / n) > mx_step:
-            n2 = int(t_calc / mx_step)
-        else:
-            n2 = n
-
         sol_1 = self.time_evolution(
-            x0, parameters, 0, t_disc, n1, rel_tol, abs_tol, mx_step
+            x0, parameters, 0, t_disc, n, met, rel_tol, abs_tol, mx_step
         )
         x1 = sol_1.x
         # Then get the stationary trajectory.
         x0_2 = x1[:, -1]
         sol_2 = self.time_evolution(
-            x0_2, parameters, 0, t_calc, n2, rel_tol, abs_tol, mx_step
+            x0_2, parameters, 0, t_calc, n, met, rel_tol, abs_tol, mx_step
         )
         t, x = sol_2.t, sol_2.x
         return poincare.Poincare(t, x, self.variables)

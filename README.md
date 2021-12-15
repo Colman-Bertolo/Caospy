@@ -5,29 +5,88 @@
 [![https://github.com/leliel12/diseno_sci_sfw](https://img.shields.io/badge/DiSoftCompCi-FAMAF-ffda00)](https://github.com/leliel12/diseno_sci_sfw)
 
 # Caospy
-Librería destinada al análisis de sistemas dinámicos. 
+Caospy is a Python package to analyze continuous dynamical systems and chaos.
 
-## Descripción
+Its utilities are:
 
-Presenta las siguientes funcionalidades:
-- Resolver numéricamente EDO o sistema de EDOs temporal.
-- Análisis y clasificación de puntos fijos.
-- Exponente de Lyapunov.
-- Generación de gráficos 2D y 3D. 
-- Trazado de mapas de Poincare
-- Estabilidad del sistema
+-Solve systems of ODEs.
+-Eigenvalues, eigenvectors and roots of equations.
+-Classification of fixed points in 1D and 2D.
+-Poincare maps.
+-Plots.
 
-Para su utilización, el usuario debe definir la función requerida, en caso contrario la propia librería cuenta con las ecuaciones de Lorenz y de Dufing integradas, debido a que dentro del estudio de sistema dinámicos dichas expresiones son muy recurrentes.
+Some well studied systems are available in the library, like Lorenz’s system, the Logistic equation, Duffing’s system and the Rosslers-Chaos systems.
 
-La documentación se encuentra en:
+## Requirements
 
-## Requerimientos 
+You will need Python 3.9 or later to run Caospy.
 
-Se necesita Python 3.9+ para correr Caospy, en el archivo requierements.txt
+## Installation
 
-## Recomendaciones 
+Caospy is available at PyPI. You can install it via the pip command:
 
-Para agilizar su utilización se recomienda importar de la siguiente manera.
+```bash
+$ pip install Caospy
+```
+
+If you'd like to bleeding edge of the code or you want to run the latest version,
+ you can clone this repo and then inside the local directory execute:
+
+```bash
+$ pip install -e .
+```
+
+## Usage 
+
+Let's study the [damping harmonic oscillator](https://en.wikipedia.org/wiki/Harmonic_oscillator) without excitation force. It's a second order ODE  one dimensional but we'll reduce it to a system of first-order odes.
 ```Python
 import caospy as cp
+import matplotlib.pyplot as plt
+
+
+var = ["x"]
+fun = ["a*x"]
+par =["a"]
+
+
+var = ["x", "y"] # Variables
+par = ["k", "c"] # Parameters
+fun = ["y", "-c*y-k*x"] # Functions
+name = "Damped harmonic oscillator" # Problem name
+Ode_2d = cp.TwoDim(var, fun, par, name)
+t0 = 0 # Initial time
+tf = 8 # End time
+x0 = [0, 1] # Initial Conditions
+par_value = [100, 1] # Parameter value
+N = 500 # Number of time steps
+sol = Ode_2d.time_evolution(x0, par_value, t0, tf, N)
+fig, ax = plt.subplots()
+ax = sol.plot_trajectory("t-x") # Plot the solution
+ax.set_xlabel("t [s]")
+ax.set_ylabel("x [cm]")
 ```
+
+For more examples, please refer to the tutorial in [Documentation](https://caospy.readthedocs.io/en/latest/?badge=latest).
+
+## Contributing
+
+Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+
+If you have a suggestion that would make this better, please fork the repo and create a pull request. You can also simply open an issue with the tag "enhancement".
+Don't forget to give the project a star! Thanks again!
+
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+<p align="right">(<a href="#top">back to top</a>)</p>
+
+## License
+
+Distributed under the MIT License. See [LICENSE](https://github.com/Colman-Bertolo/Caospy/blob/main/LICENSE) for more information.
+
+## Authors
+
+Sebastián Nicolás Bertolo, Juan Colman.

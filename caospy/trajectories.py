@@ -80,7 +80,7 @@ class Trajectory:
         self.t = t  # Devuelve vector de tiempo t
         self.n_var = np.size(x[:, 0])
         if variables == []:
-            variables = [f"$x_{i}$" for i in range(self.n_var)]
+            variables = [f"x_{i}" for i in range(self.n_var)]
         self.cols = ["t"] + [f"{v}" for v in variables]
         self.variables = variables
 

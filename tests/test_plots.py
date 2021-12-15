@@ -24,7 +24,7 @@ def test_trajectorieplot_1D(fig_test, fig_ref):
     t0 = 0
     tf = 3
     N = 500
-    fun = s.time_evolution(y0, par, t0, tf, N)  # Get Trajectorie class
+    fun = s.time_evolution(y0, par, ti=t0, tf=tf, n=N)
 
     # test
     test_ax = fig_test.subplots()
@@ -50,7 +50,7 @@ def test_trajectorieplot_2D(fig_test, fig_ref):
     t0 = 0
     tf = 3
     N = 500
-    fun = s.time_evolution(y0, par, t0, tf, N)  # Get Trajectorie class
+    fun = s.time_evolution(y0, par, ti=t0, tf=tf, n=N)
 
     # test
     test_ax = fig_test.subplots()

@@ -105,7 +105,7 @@ def test_time_evolution(time_evolution_fun):
     tf = 10
     par = 0
     n = 1000
-    states = time_evolution_fun.time_evolution(y0, par, t0, tf, n)
+    states = time_evolution_fun.time_evolution(y0, par, ti=t0, tf=tf, n=n)
     y = states.x
     assert y[0][-1] == pytest.approx(1.000, rel=1e-3)
 
