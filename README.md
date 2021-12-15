@@ -9,11 +9,11 @@ Caospy is a Python package to analyze continuous dynamical systems and chaos.
 
 Its utilities are:
 
--Solve systems of ODEs.
--Eigenvalues, eigenvectors and roots of equations.
--Classification of fixed points in 1D and 2D.
--Poincare maps.
--Plots.
+- Solve systems of ODEs.
+- Eigenvalues, eigenvectors and roots of equations.
+- Classification of fixed points in 1D and 2D.
+- Poincare maps.
+- Plots.
 
 Some well studied systems are available in the library, like Lorenz’s system, the Logistic equation, Duffing’s system and the Rosslers-Chaos systems.
 
