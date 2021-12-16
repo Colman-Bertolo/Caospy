@@ -98,4 +98,4 @@ Distributed under the MIT License. See [LICENSE](https://github.com/Colman-Berto
 
 ## Authors
 
-Sebastián Nicolás Bertolo, Juan Colman.
+Juan Colman(E-mail: juancolmanot@gmail.com), Sebastián Nicolás Bertolo.
