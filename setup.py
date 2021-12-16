@@ -30,7 +30,7 @@ with open("README.md") as fp:
 # =============================================================================
 
 setup(
-    name="Caospy",
+    name="caospy",
     version=VERSION,
     description="Dynamic systems analysis",
     long_description=LONG_DESCRIPTION,

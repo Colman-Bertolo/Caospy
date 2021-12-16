@@ -7,7 +7,6 @@
 [![MIT License](https://img.shields.io/npm/l/caos)](https://caospy.readthedocs.io/en/latest/license.html)
 [![Coverage Status](https://coveralls.io/repos/github/Colman-Bertolo/Caospy/badge.svg?branch=main)](https://coveralls.io/github/Colman-Bertolo/Caospy?branch=main)
 [![https://github.com/leliel12/diseno_sci_sfw](https://img.shields.io/badge/DiSoftCompCi-FAMAF-ffda00)](https://github.com/leliel12/diseno_sci_sfw)
-[![PyPI](https://img.shields.io/pypi/v/caospy)](https://pypi.org/project/Caospy/)
 
 Caospy is a Python package to analyze continuous dynamical systems and chaos.
 
@@ -35,7 +34,7 @@ You will need Python 3.9 or later to run Caospy.
 Caospy is available at PyPI. You can install it via the pip command:
 
 ```bash
-$ pip install Caospy
+$ pip install caospy
 ```
 
 If you'd like to bleeding edge of the code or you want to run the latest version,

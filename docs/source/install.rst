@@ -11,7 +11,7 @@ Use the next command
 
 .. code-block:: Python
 
-     pip install Caospy
+     pip install caospy
 
 
 Installation with source code
