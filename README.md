@@ -7,6 +7,7 @@
 [![MIT License](https://img.shields.io/npm/l/caos)](https://caospy.readthedocs.io/en/latest/license.html)
 [![Coverage Status](https://coveralls.io/repos/github/Colman-Bertolo/Caospy/badge.svg?branch=main)](https://coveralls.io/github/Colman-Bertolo/Caospy?branch=main)
 [![https://github.com/leliel12/diseno_sci_sfw](https://img.shields.io/badge/DiSoftCompCi-FAMAF-ffda00)](https://github.com/leliel12/diseno_sci_sfw)
+[![PyPI version](https://badge.fury.io/py/caospy.svg)](https://badge.fury.io/py/caospy)
 
 Caospy is a Python package to analyze continuous dynamical systems and chaos.
 
